@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Stock, MarketData, MarketType, SortField, SortDirection } from '@/types/stock';
 import StockCard from '@/components/stocks/StockCard';
@@ -18,7 +18,7 @@ interface StockPageClientProps {
   flag: string;
 }
 
-export default function StockPageClient({ market, title, flag }: StockPageClientProps) {
+function StockPageContent({ market, title, flag }: StockPageClientProps) {
   const [data, setData] = useState<MarketData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -77,7 +77,7 @@ export default function StockPageClient({ market, title, flag }: StockPageClient
   const topByScore = useMemo(() => getTopByScore(allStocks, 8), [allStocks]);
   const topByDividend = useMemo(() => getTopByDividend(allStocks, 8), [allStocks]);
   const topUndervalued = useMemo(() => getTopUndervalued(allStocks, 8), [allStocks]);
-  const topMomentum = useMemo(() => getTopMomentum(allStocks, 8), [allStocks]);
+  const topByMomentum = useMemo(() => getTopMomentum(allStocks, 8), [allStocks]);
 
   // When a sector is clicked in heatmap, set filter and scroll to list
   const handleSectorClick = (sectorName: string) => {
@@ -137,7 +137,7 @@ export default function StockPageClient({ market, title, flag }: StockPageClient
       <TopByScore stocks={topByScore} onStockClick={setSelectedStock} />
       <TopByDividend stocks={topByDividend} onStockClick={setSelectedStock} />
       <TopUndervalued stocks={topUndervalued} onStockClick={setSelectedStock} />
-      <TopByMomentum stocks={topMomentum} onStockClick={setSelectedStock} />
+      <TopByMomentum stocks={topByMomentum} onStockClick={setSelectedStock} />
 
       {/* Search & Filter */}
       <div ref={filterRef}>
@@ -181,5 +181,17 @@ export default function StockPageClient({ market, title, flag }: StockPageClient
         <StockModal stock={selectedStock} market={market} onClose={() => setSelectedStock(null)} />
       )}
     </div>
+  );
+}
+
+export default function StockPageClient(props: StockPageClientProps) {
+  return (
+    <Suspense fallback={
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
+      </div>
+    }>
+      <StockPageContent {...props} />
+    </Suspense>
   );
 }
