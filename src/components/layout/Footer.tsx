@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { Github, Heart, TrendingUp } from 'lucide-react';
 
 export default function Footer() {
@@ -26,10 +27,10 @@ export default function Footer() {
           <div>
             <h3 className="text-sm font-semibold text-slate-300 mb-3">Sayfalar</h3>
             <ul className="space-y-2 text-sm text-slate-500">
-              <li><a href="/" className="hover:text-white transition-colors">Dashboard</a></li>
-              <li><a href="/bist" className="hover:text-white transition-colors">BIST Hisseleri</a></li>
-              <li><a href="/abd" className="hover:text-white transition-colors">ABD Hisseleri</a></li>
-              <li><a href="/karsilastir" className="hover:text-white transition-colors">Karşılaştır</a></li>
+              <li><Link href="/" className="hover:text-white transition-colors">Dashboard</Link></li>
+              <li><Link href="/bist" className="hover:text-white transition-colors">BIST Hisseleri</Link></li>
+              <li><Link href="/abd" className="hover:text-white transition-colors">ABD Hisseleri</Link></li>
+              <li><Link href="/karsilastir" className="hover:text-white transition-colors">Karşılaştır</Link></li>
             </ul>
           </div>
 

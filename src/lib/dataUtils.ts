@@ -6,17 +6,23 @@ export async function loadMarketData(market: MarketType): Promise<MarketData> {
   if (files.length === 0) throw new Error(`${market} verisi bulunamadı`);
   const latestFile = files[files.length - 1];
   const res = await fetch(`/data/${latestFile}`);
-  const data: MarketData = await res.json();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const data: any = await res.json();
+
+  if (market === 'BIST' && Array.isArray(data.data)) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    data.data = data.data.map((raw: any) => raw.ticker ? raw : transformBistStock(raw));
+  }
 
   // ABD verilerinde eksik olan super_score'u hesapla
-  data.data = data.data.map(stock => {
-    if (stock.scores.super_score === undefined || stock.scores.super_score === null) {
+  data.data = data.data.map((stock: Stock) => {
+    if (stock.scores && (stock.scores.super_score === undefined || stock.scores.super_score === null)) {
       stock.scores.super_score = calculateSuperScore(stock);
     }
     return stock;
   });
 
-  return data;
+  return data as MarketData;
 }
 
 export function calculateSuperScore(stock: Stock): number {
@@ -67,6 +73,121 @@ export function calculateSuperScore(stock: Stock): number {
 
   if (weights === 0) return 0;
   return (score / weights) * 100;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function transformBistStock(raw: any): Stock {
+  return {
+    ticker: raw.sembol,
+    name: raw.ad,
+    sector: raw.sektor,
+    industry: raw.endustri,
+    price: raw.fiyat,
+    market_cap: raw.piyasa_degeri,
+    currency: 'TL',
+    valuation: {
+      pe_trailing: raw.degerleme?.fk_oranı ?? null,
+      pe_forward: raw.degerleme?.fk_ileri ?? null,
+      peg_ratio: raw.degerleme?.peg_oranı ?? null,
+      pb_ratio: raw.degerleme?.pddd_oranı ?? null,
+      ev_ebitda: raw.degerleme?.fd_favok ?? null,
+      ev_revenue: raw.degerleme?.fd_satıs ?? null,
+      ps_ratio: raw.degerleme?.fiyat_satıs ?? null,
+    },
+    profitability: {
+      roe: raw.karlılık?.ozsermaye_karlılıgı ?? null,
+      roa: raw.karlılık?.aktif_karlılık ?? null,
+      net_margin: raw.karlılık?.net_kar_marjı ?? null,
+      operating_margin: raw.karlılık?.faaliyet_marjı ?? null,
+      gross_margin: raw.karlılık?.brüt_marj ?? null,
+      ebitda_margin: raw.karlılık?.favok_marjı ?? null,
+      roe_stability: raw.karlılık?.ozsermaye_istikrarı ?? null,
+    },
+    growth: {
+      revenue_growth: raw.buyume?.satıs_buyumesi ?? null,
+      earnings_growth: raw.buyume?.kar_buyumesi ?? null,
+      earnings_quarterly_growth: raw.buyume?.earnings_quarterly_growth ?? null,
+    },
+    solvency: {
+      debt_to_equity: raw.borcluluk?.borc_ozkaynak_oranı ?? null,
+      current_ratio: raw.borcluluk?.cari_oran ?? null,
+      quick_ratio: raw.borcluluk?.likidite_oranı ?? null,
+      interest_coverage: raw.borcluluk?.interest_coverage ?? null,
+    },
+    dividends_performance: {
+      dividend_yield: raw.temettu_verimi?.temettu_oranı ?? null,
+      payout_ratio: raw.temettu_verimi?.dagıtım_oranı ?? null,
+      beta: raw.temettu_verimi?.beta_katsayısı ?? null,
+      "52w_high": raw.temettu_verimi?.["52w_high"] ?? null,
+      "52w_low": raw.temettu_verimi?.["52w_low"] ?? null,
+    },
+    cash_flow: {
+      free_cash_flow: raw.nakit_akısı?.serbest_nakit_akısı ?? null,
+      operating_cash_flow: raw.nakit_akısı?.isletme_nakit_akısı ?? null,
+      price_to_free_cash_flow: raw.nakit_akısı?.fiyat_serbest_nakit_akısı ?? null,
+    },
+    targets_consensus: {
+      target_high: raw.targets_consensus?.analist_hedefi_en_yuksek ?? null,
+      target_low: raw.targets_consensus?.analist_hedefi_en_dusuk ?? null,
+      target_mean: raw.targets_consensus?.analist_hedefi_ortalama ?? null,
+      target_median: raw.targets_consensus?.analist_hedefi_ortalama ?? null,
+      recommendation: raw.targets_consensus?.tavsiye ?? null,
+      number_of_analysts: raw.targets_consensus?.analist_sayısı ?? null,
+    },
+    efficiency: {
+      revenue_per_employee: raw.efficiency?.calısan_basına_gelir ?? null,
+      revenue_per_share: raw.efficiency?.hisse_basına_gelir ?? null,
+      asset_turnover: raw.efficiency?.aktif_devir_hızı ?? null,
+    },
+    scores: {
+      piotroski_f_score: raw.uzman_skorları?.piotroski_f ?? null,
+      altman_z_score: raw.uzman_skorları?.altman_z ?? null,
+      graham_number: raw.uzman_skorları?.graham_degeri ?? null,
+      yasar_erdinc_score: raw.uzman_skorları?.yasar_erdinc_skoru ? {
+        score: raw.uzman_skorları.yasar_erdinc_skoru.score ?? 0,
+        stages_passed: raw.uzman_skorları.yasar_erdinc_skoru.stages_passed ?? 0,
+        roe_target_price: raw.uzman_skorları.yasar_erdinc_skoru.roe_target_price ?? null
+      } : undefined,
+      magic_formula: raw.uzman_skorları?.sihirli_formul ? {
+        earnings_yield: raw.uzman_skorları.sihirli_formul.earnings_yield ?? null,
+        roc: raw.uzman_skorları.sihirli_formul.roc ?? null,
+        magic_formula_rank: raw.uzman_skorları.sihirli_formul.magic_formula_rank ?? null
+      } : undefined,
+      canslim_score: raw.uzman_skorları?.canslim_skoru ? {
+        score: raw.uzman_skorları.canslim_skoru.score ?? 0,
+        points: raw.uzman_skorları.canslim_skoru.points ?? 0
+      } : undefined,
+      strategic_radars: raw.uzman_skorları?.stratejik_radarlar ? {
+        radar_1: raw.uzman_skorları.stratejik_radarlar.radar_1,
+        radar_3: raw.uzman_skorları.stratejik_radarlar.radar_3,
+        radar_6: raw.uzman_skorları.stratejik_radarlar.radar_6,
+      } : undefined,
+      super_score: raw.uzman_skorları?.super_skor ?? null,
+    },
+    technicals: raw.teknik_analiz ? {
+      sma_50: raw.teknik_analiz.sma_50 ?? null,
+      sma_200: raw.teknik_analiz.sma_200 ?? null,
+      rsi_14: raw.teknik_analiz.rsi_14 ?? null,
+      momentum_10d: raw.teknik_analiz.momentum_10d ?? null,
+      momentum_1m: raw.teknik_analiz.momentum_1m ?? null,
+      momentum_3m: raw.teknik_analiz.momentum_3m ?? null,
+      momentum_1y: raw.teknik_analiz.momentum_1y ?? null,
+      price_vs_sma200: raw.teknik_analiz.fiyat_sma200_oranı ?? null,
+    } : null,
+    last_updated: raw.last_updated ?? '',
+    fiyat_gecmisi: raw.fiyat_gecmisi ?? [],
+    relative_valuation: {
+      sector_median_pe: raw.sektorel_kıyas?.sektor_fk_medyanı ?? null,
+      discount_premium_pe: raw.sektorel_kıyas?.sektore_gore_iskonto ?? null,
+    },
+    rankings: {
+      pe_rank: raw.piyasa_sıralaması?.fk_sırası,
+      pe_rank_int: raw.piyasa_sıralaması?.pe_rank_int,
+      growth_rank: raw.piyasa_sıralaması?.buyume_sırası,
+      super_score_rank: raw.piyasa_sıralaması?.genel_sıralama,
+    },
+    ai_insight: raw.yapay_zeka_notu ?? '',
+  };
 }
 
 export async function getAvailableFiles(market: MarketType): Promise<string[]> {
