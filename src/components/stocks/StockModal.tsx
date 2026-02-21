@@ -4,7 +4,7 @@ import React from 'react';
 import { Stock, MarketType } from '@/types/stock';
 import { formatNumber, formatPercent, formatMarketCap, getScoreColor, getScoreBg, getRadarData, getRedFlags, getGreenFlags, SECTOR_ICONS, translateSector, translateRecommendation, capScore } from '@/lib/dataUtils';
 import { X, Brain, AlertTriangle, CheckCircle2, Info, TrendingUp, TrendingDown, Target, Shield, DollarSign, BarChart3, Activity, User, Users, MapPin, Building } from 'lucide-react';
-import { AreaChart, Area, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
 import { loadHistoricalData } from '@/lib/dataUtils';
 
 interface HistoricalPoint {
@@ -112,11 +112,21 @@ export default function StockModal({ stock, market, macros, onClose }: StockModa
       return {
         ...p,
         price: p.price !== null ? p.price / usdRate : null,
-        graham: p.graham !== null ? p.graham / lastUsdRate : null,
-        target: p.target !== null ? p.target / lastUsdRate : null,
       };
     });
-  }, [historicalData, showUsd, usdRates, lastUsdRate, market]);
+  }, [historicalData, showUsd, usdRates, market]);
+
+  const periodReturn = React.useMemo(() => {
+    if (chartData.length < 2) return null;
+    const firstPrice = chartData[0].price;
+    const lastPrice = chartData[chartData.length - 1].price;
+    if (!firstPrice || !lastPrice) return null;
+    return ((lastPrice - firstPrice) / firstPrice * 100).toFixed(2);
+  }, [chartData]);
+
+  const currentGraham = stock.scores.graham_number ? (showUsd && market === 'BIST' ? stock.scores.graham_number / lastUsdRate : stock.scores.graham_number) : null;
+  const currentTarget = stock.targets_consensus.target_mean ? (showUsd && market === 'BIST' ? stock.targets_consensus.target_mean / lastUsdRate : stock.targets_consensus.target_mean) : null;
+  const dispCurrency = showUsd && market === 'BIST' ? 'USD' : stock.currency || 'TL';
 
   return (
     <div className="fixed inset-0 z-50 modal-overlay flex items-start justify-center overflow-y-auto py-8 px-4" onClick={onClose}>
@@ -267,9 +277,16 @@ export default function StockModal({ stock, market, macros, onClose }: StockModa
           {/* Historical Valuation Chart */}
           <div className="glass-card p-4 flex flex-col">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-slate-300 flex items-center gap-2">
-                <BarChart3 className="w-4 h-4 text-emerald-400" /> Değerleme Geçmişi (Günlük)
-              </h3>
+              <div className="flex flex-col">
+                <h3 className="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4 text-emerald-400" /> Değerleme Geçmişi (Günlük)
+                </h3>
+                {periodReturn && (
+                  <span className={`text-xs mt-1 font-medium ${Number(periodReturn) >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    {historyFilter === 'ALL' ? '1 Yıllık' : historyFilter === '3M' ? '3 Aylık' : '1 Aylık'} Getiri: {Number(periodReturn) > 0 ? '+' : ''}%{periodReturn}
+                  </span>
+                )}
+              </div>
               <div className="flex items-center gap-3">
                 {market === 'BIST' && (
                   <button
@@ -337,29 +354,27 @@ export default function StockModal({ stock, market, macros, onClose }: StockModa
                       fill="url(#colorPrice)" 
                       strokeWidth={2}
                     />
-                    <Line 
-                      type="monotone" 
-                      dataKey="graham" 
-                      name="Graham" 
-                      stroke="#10b981" 
-                      strokeWidth={2} 
-                      dot={false}
-                      strokeDasharray="5 5"
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="target" 
-                      name="Analist Hedef" 
-                      stroke="#8b5cf6" 
-                      strokeWidth={2} 
-                      dot={false}
-                    />
                   </AreaChart>
                 </ResponsiveContainer>
               ) : (
                 <div className="h-full flex flex-col items-center justify-center text-slate-500 text-sm italic">
                   <Activity className="w-8 h-8 mb-2 opacity-20" />
                   Geçmiş veri bulunamadı
+                </div>
+              )}
+            </div>
+            {/* Chart footer notes */}
+            <div className="mt-4 pt-4 border-t border-[#2a3050]/50 flex flex-wrap items-center justify-center gap-6 text-[11px] sm:text-xs">
+              {currentGraham !== null && (
+                <div className="flex items-center gap-1.5 bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/20">
+                  <span className="text-emerald-400 font-semibold">Graham Değeri:</span> 
+                  <span className="text-white font-bold">{formatNumber(currentGraham)} {dispCurrency}</span>
+                </div>
+              )}
+              {currentTarget !== null && (
+                <div className="flex items-center gap-1.5 bg-purple-500/10 px-3 py-1.5 rounded-lg border border-purple-500/20">
+                  <span className="text-purple-400 font-semibold">Analist Hedefi:</span> 
+                  <span className="text-white font-bold">{formatNumber(currentTarget)} {dispCurrency}</span>
                 </div>
               )}
             </div>

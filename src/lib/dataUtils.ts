@@ -152,9 +152,9 @@ export function transformBistStock(raw: any): Stock {
       altman_z_score: raw.uzman_skorları?.altman_z_iflas_riski ?? null,
       graham_number: raw.uzman_skorları?.graham_number ?? null,
       yasar_erdinc_score: raw.uzman_skorları?.yasar_erdinc_potansiyel !== undefined ? {
-        score: raw.uzman_skorları.yasar_erdinc_potansiyel,
-        stages_passed: 0,
-        roe_target_price: null
+        score: raw.uzman_skorları.yasar_erdinc_potansiyel.score ?? 0,
+        stages_passed: raw.uzman_skorları.yasar_erdinc_potansiyel.stages_passed ?? 0,
+        roe_target_price: raw.uzman_skorları.yasar_erdinc_potansiyel.roe_target_price ?? null
       } : undefined,
       magic_formula: raw.uzman_skorları?.magic_formula ? {
         earnings_yield: raw.uzman_skorları.magic_formula.ey ?? null,
