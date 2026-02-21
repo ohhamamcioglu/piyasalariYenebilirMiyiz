@@ -185,6 +185,7 @@ export type SortField =
   | "pe_trailing"
   | "name"
   | "piotroski_f_score"
+  | "master_score"
   | "rsi_14"
   | "momentum_1m";
 export type SortDirection = "asc" | "desc";

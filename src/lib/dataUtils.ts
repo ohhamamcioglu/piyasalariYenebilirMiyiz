@@ -299,6 +299,7 @@ export function sortStocks(stocks: Stock[], field: SortField, direction: SortDir
       case 'piotroski_f_score': va = a.scores.piotroski_f_score; vb = b.scores.piotroski_f_score; break;
       case 'rsi_14': va = a.technicals?.rsi_14 ?? null; vb = b.technicals?.rsi_14 ?? null; break;
       case 'momentum_1m': va = a.technicals?.momentum_1m ?? null; vb = b.technicals?.momentum_1m ?? null; break;
+      case 'master_score': va = a.scores.master_score ?? null; vb = b.scores.master_score ?? null; break;
       case 'name': {
         const na = a.name ?? '';
         const nb = b.name ?? '';

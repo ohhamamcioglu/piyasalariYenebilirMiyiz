@@ -24,6 +24,7 @@ interface SearchFilterProps {
 
 const SORT_OPTIONS: { value: SortField; label: string }[] = [
   { value: 'super_score', label: 'Süper Skor' },
+  { value: 'master_score', label: 'Master Skor' },
   { value: 'price', label: 'Fiyat' },
   { value: 'market_cap', label: 'Piyasa Değeri' },
   { value: 'dividend_yield', label: 'Temettü Verimi' },

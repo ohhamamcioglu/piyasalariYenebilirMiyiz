@@ -97,10 +97,20 @@ export default function StockCard({ stock, onClick, index }: StockCardProps) {
           )}
 
           {/* Score circle */}
-          <div className={`relative w-12 h-12 rounded-full flex items-center justify-center border-2 ${scoreBorder} ${scoreBg} ${capped !== null && !isNaN(capped) && capped >= 70 ? 'score-glow-green' : capped !== null && !isNaN(capped) && capped >= 40 ? 'score-glow-amber' : 'score-glow-red'}`}>
-            <span className={`text-sm font-bold ${scoreColor}`}>
-              {capped !== null && !isNaN(capped) ? Math.round(capped) : '—'}
-            </span>
+          <div className="flex flex-col items-center gap-1">
+            <div 
+              className={`relative w-12 h-12 rounded-full flex items-center justify-center border-2 ${scoreBorder} ${scoreBg} ${capped !== null && !isNaN(capped) && capped >= 70 ? 'score-glow-green' : capped !== null && !isNaN(capped) && capped >= 40 ? 'score-glow-amber' : 'score-glow-red'}`}
+              title="Süper Skor"
+            >
+              <span className={`text-sm font-bold ${scoreColor}`}>
+                {capped !== null && !isNaN(capped) ? Math.round(capped) : '—'}
+              </span>
+            </div>
+            {stock.scores.master_score !== null && stock.scores.master_score !== undefined && (
+              <div className="text-[10px] font-bold text-slate-500 bg-slate-800/50 px-1.5 py-0.5 rounded border border-white/5" title="Master Skor">
+                M: {Math.round(stock.scores.master_score!)}
+              </div>
+            )}
           </div>
 
           <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-blue-400 transition-colors" />

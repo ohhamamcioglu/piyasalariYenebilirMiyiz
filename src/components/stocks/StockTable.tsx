@@ -26,6 +26,7 @@ export default function StockTable({ stocks, onStockClick }: StockTableProps) {
             <th className="px-4 py-3 font-semibold border-b border-[#2a3050]/50">Fiyat</th>
             <th className="px-4 py-3 font-semibold border-b border-[#2a3050]/50">Piyasa Değeri</th>
             <th className="px-4 py-3 font-semibold border-b border-[#2a3050]/50">Süper Skor</th>
+            <th className="px-4 py-3 font-semibold border-b border-[#2a3050]/50">Master Skor</th>
             <th className="px-4 py-3 font-semibold border-b border-[#2a3050]/50">F/K</th>
             <th className="px-4 py-3 font-semibold border-b border-[#2a3050]/50">PD/DD</th>
             <th className="px-4 py-3 font-semibold border-b border-[#2a3050]/50">Temettü Verimi</th>
@@ -62,6 +63,9 @@ export default function StockTable({ stocks, onStockClick }: StockTableProps) {
                   <span className={`font-bold ${scoreColor}`}>
                     {capped !== null && !isNaN(capped) ? Math.round(capped) : '—'}
                   </span>
+                </td>
+                <td className="px-4 py-3 text-slate-300 font-medium">
+                  {stock.scores.master_score !== null && stock.scores.master_score !== undefined ? Math.round(stock.scores.master_score!) : '—'}
                 </td>
                 <td className="px-4 py-3 text-slate-400">
                   {formatNumber(stock.valuation.pe_trailing)}
