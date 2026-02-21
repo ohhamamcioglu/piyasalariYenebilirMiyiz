@@ -34,21 +34,21 @@ const CustomizedContent = (props: any) => {
         width={width}
         height={height}
         style={{
-          fill: depth === 1 ? 'rgba(0,0,0,0)' : (color || '#374151'),
-          stroke: '#0d1117',
-          strokeWidth: depth === 1 ? 4 : 1,
+          fill: depth === 1 ? 'rgba(0,0,0,0)' : (color || '#334155'),
+          stroke: '#1e293b', // 1px slate/zinc spacing
+          strokeWidth: 1,
           strokeOpacity: 1,
           cursor: 'pointer'
         }}
         onPointerDown={handlePointerDown}
       />
-      {depth === 1 && width > 40 && height > 30 ? (
-        <text x={x + 4} y={y + 16} fill="#fff" fontSize={12} fillOpacity={0.9} fontWeight="bold" style={{ pointerEvents: 'none' }}>
+      {depth === 1 && width > 60 && height > 30 ? (
+        <text x={x + width / 2} y={y + 18} textAnchor="middle" fill="#e2e8f0" fontSize={13} fillOpacity={0.9} fontWeight="bold" style={{ pointerEvents: 'none', textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}>
           {name}
         </text>
       ) : null}
-      {depth === 2 && width > 35 && height > 20 ? (
-        <text x={x + width / 2} y={y + height / 2 + 4} textAnchor="middle" fill="#fff" fontSize={10} fontWeight="600" style={{ pointerEvents: 'none' }}>
+      {depth === 2 && width > 35 && height > 24 ? (
+        <text x={x + width / 2} y={y + height / 2 + 4} textAnchor="middle" fill="#f8fafc" fontSize={11} fontWeight="600" style={{ pointerEvents: 'none' }}>
           {name}
         </text>
       ) : null}
@@ -91,13 +91,15 @@ export default function MarketHeatmap({ stocks, onSectorClick }: MarketHeatmapPr
         children: sectorStocks.map(s => {
           const discount = s.relative_valuation?.discount_premium_pe ?? 0;
           const colorVal = Math.max(-1, Math.min(1, discount));
-          let color = '#374151'; // neutral
+          let color = '#334155'; // neutral slate
           if (colorVal < 0) {
             const intensity = Math.min(1, Math.abs(colorVal) / 0.5);
-            color = `rgba(16, 185, 129, ${0.4 + intensity * 0.6})`;
+            // Muted Emerald
+            color = `rgba(16, 185, 129, ${0.15 + intensity * 0.7})`;
           } else if (colorVal > 0) {
             const intensity = Math.min(1, colorVal / 0.5);
-            color = `rgba(239, 68, 68, ${0.4 + intensity * 0.6})`;
+            // Muted Rose
+            color = `rgba(225, 29, 72, ${0.15 + intensity * 0.7})`;
           }
 
           return {
@@ -138,9 +140,9 @@ export default function MarketHeatmap({ stocks, onSectorClick }: MarketHeatmapPr
         </ResponsiveContainer>
       </div>
       <div className="flex items-center justify-center gap-4 mt-4 pt-4 border-t border-[#2a3050]/50 text-[10px] sm:text-xs text-slate-500">
-        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-emerald-500" /> İskontolu (Ucuz)</span>
-        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-[#374151]" /> Normal</span>
-        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-red-500" /> Primli (Pahalı)</span>
+        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-emerald-600/60" /> İskontolu (Ucuz)</span>
+        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-[#334155]" /> Normal</span>
+        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-rose-600/60" /> Primli (Pahalı)</span>
         <span className="hidden sm:inline">• Kutu büyüklüğü = Piyasa Değeri • Tıklayarak sektörü filtreleyin</span>
       </div>
     </div>

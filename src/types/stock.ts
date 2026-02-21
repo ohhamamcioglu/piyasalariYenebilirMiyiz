@@ -100,6 +100,7 @@ export interface StockScores {
   strategic_radars?: StrategicRadars;
   master_score?: number | null;
   super_score: number | null;
+  export_power?: number | null;
 }
 
 export interface StockTechnicals {
@@ -127,6 +128,13 @@ export interface StockRankings {
   super_score_rank?: string;
 }
 
+export interface CompanyProfile {
+  manager?: string;
+  employees?: string;
+  address?: string;
+  description?: string;
+}
+
 export interface Stock {
   ticker: string;
   name: string | null;
@@ -135,6 +143,7 @@ export interface Stock {
   price: number | null;
   market_cap: number | null;
   currency?: string;
+  company_profile?: CompanyProfile;
   valuation: StockValuation;
   profitability: StockProfitability;
   growth: StockGrowth;

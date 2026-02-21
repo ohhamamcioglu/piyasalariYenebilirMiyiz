@@ -85,6 +85,12 @@ export function transformBistStock(raw: any): Stock {
     price: raw.fiyat,
     market_cap: raw.piyasa_degeri,
     currency: 'TL',
+    company_profile: raw.sirket_kunyesi ? {
+      manager: raw.sirket_kunyesi.yönetici ?? null,
+      employees: raw.sirket_kunyesi.calısan_sayısı ?? null,
+      address: raw.sirket_kunyesi.adres ?? null,
+      description: raw.sirket_kunyesi.hakkında ?? null,
+    } : undefined,
     valuation: {
       pe_trailing: raw.degerleme?.fk_oranı ?? null,
       pe_forward: raw.degerleme?.fk_ileri ?? null,
@@ -166,6 +172,7 @@ export function transformBistStock(raw: any): Stock {
       } : undefined,
       master_score: raw.uzman_skorları?.master_skor ?? null,
       super_score: raw.uzman_skorları?.super_score ?? null,
+      export_power: raw.uzman_skorları?.ihracat_gucu ?? null,
     },
     technicals: raw.teknik_analiz ? {
       sma_50: raw.teknik_analiz.sma_50 ?? null,

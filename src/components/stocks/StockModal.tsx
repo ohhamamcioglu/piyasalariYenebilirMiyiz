@@ -3,7 +3,7 @@
 import React from 'react';
 import { Stock, MarketType } from '@/types/stock';
 import { formatNumber, formatPercent, formatMarketCap, getScoreColor, getScoreBg, getRadarData, getRedFlags, getGreenFlags, SECTOR_ICONS, translateSector, translateRecommendation, capScore } from '@/lib/dataUtils';
-import { X, Brain, AlertTriangle, CheckCircle2, Info, TrendingUp, TrendingDown, Target, Shield, DollarSign, BarChart3, Activity } from 'lucide-react';
+import { X, Brain, AlertTriangle, CheckCircle2, Info, TrendingUp, TrendingDown, Target, Shield, DollarSign, BarChart3, Activity, User, Users, MapPin, Building } from 'lucide-react';
 import { AreaChart, Area, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
 import { loadHistoricalData } from '@/lib/dataUtils';
 
@@ -136,7 +136,7 @@ export default function StockModal({ stock, market, macros, onClose }: StockModa
                 </div>
               </div>
               <p className="text-sm text-slate-400 mb-3">{stock.name}</p>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 mt-3">
                 <span className="text-xs px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">{translateSector(stock.sector)}</span>
                 <span className="text-xs px-2.5 py-1 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20">{stock.industry}</span>
                 {safeCheck && (
@@ -145,6 +145,24 @@ export default function StockModal({ stock, market, macros, onClose }: StockModa
                   </span>
                 )}
               </div>
+              
+              {/* Güvenlik Çıtası */}
+              {stock.technicals?.dolar_bazli_mesafe !== undefined && stock.technicals.dolar_bazli_mesafe !== null && (
+                <div className="mt-5 max-w-sm">
+                  <div className="flex justify-between items-center text-[10px] uppercase tracking-wider font-semibold text-slate-400 mb-1.5">
+                    <span>Güvenlik Çıtası (200G $ Ort.)</span>
+                    <span className={stock.technicals.dolar_bazli_mesafe > 0 ? 'text-rose-400' : 'text-emerald-400'}>
+                      {stock.technicals.dolar_bazli_mesafe > 0 ? `%${(stock.technicals.dolar_bazli_mesafe * 100).toFixed(1)} Uzak` : `%${Math.abs(stock.technicals.dolar_bazli_mesafe * 100).toFixed(1)} Yakın`}
+                    </span>
+                  </div>
+                  <div className="h-1.5 w-full bg-[#111827] border border-[#2a3050] rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full rounded-full transition-all ${stock.technicals.dolar_bazli_mesafe <= 0 ? 'bg-emerald-500' : stock.technicals.dolar_bazli_mesafe < 0.15 ? 'bg-amber-500' : 'bg-rose-500'}`}
+                      style={{ width: `${Math.min(100, Math.max(5, 100 - (stock.technicals.dolar_bazli_mesafe * 100)))}%` }}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="text-right">
@@ -162,6 +180,55 @@ export default function StockModal({ stock, market, macros, onClose }: StockModa
             </div>
           </div>
         </div>
+
+        {/* Company Profile (Kurumsal Kimlik) */}
+        {stock.company_profile && (
+          <div className="p-6 border-b border-[#2a3050]/50">
+            <h3 className="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2">
+              <Building className="w-4 h-4 text-slate-400" /> Şirket Profili
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+              {stock.company_profile.manager && (
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-slate-800/50 flex items-center justify-center border border-white/5">
+                    <User className="w-4 h-4 text-slate-400" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-slate-500">Yönetici</p>
+                    <p className="text-xs font-medium text-slate-300">{stock.company_profile.manager}</p>
+                  </div>
+                </div>
+              )}
+              {stock.company_profile.employees && (
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-slate-800/50 flex items-center justify-center border border-white/5">
+                    <Users className="w-4 h-4 text-slate-400" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-slate-500">Çalışan Sayısı</p>
+                    <p className="text-xs font-medium text-slate-300">{stock.company_profile.employees}</p>
+                  </div>
+                </div>
+              )}
+              {stock.company_profile.address && (
+                <div className="flex items-center gap-3 sm:col-span-2">
+                  <div className="w-8 h-8 flex-shrink-0 rounded-full bg-slate-800/50 flex items-center justify-center border border-white/5">
+                    <MapPin className="w-4 h-4 text-slate-400" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-slate-500">Merkez</p>
+                    <p className="text-xs font-medium text-slate-300 line-clamp-2" title={stock.company_profile.address}>{stock.company_profile.address}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+            {stock.company_profile.description && (
+              <div className="text-xs text-slate-400 leading-relaxed bg-[#0d1117] p-4 rounded-xl border border-[#2a3050]/50 line-clamp-3 hover:line-clamp-none transition-all cursor-pointer">
+                {stock.company_profile.description}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* AI Insight */}
         <div className="p-6 border-b border-[#2a3050]/50">
@@ -295,6 +362,75 @@ export default function StockModal({ stock, market, macros, onClose }: StockModa
                   Geçmiş veri bulunamadı
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+
+        {/* Finansal Check-up Izgarası */}
+        <div className="p-6 border-b border-[#2a3050]/50">
+          <h3 className="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2">
+            <Activity className="w-4 h-4 text-emerald-400" /> Finansal Check-up
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            {/* Kâr İvmesi */}
+            <div className="p-3 rounded-xl bg-[#0d1117] border border-[#2a3050]/50 flex flex-col justify-between">
+              <p className="text-[10px] text-slate-400 mb-2">Kâr İvmesi</p>
+              <div className="flex items-end gap-[2px] h-6 w-full opacity-90">
+                {stock.profitability.ceyreklik_kar_trendi?.length ? (
+                  (() => {
+                    const trend = stock.profitability.ceyreklik_kar_trendi;
+                    const maxVal = Math.max(...trend.map(Math.abs));
+                    if (maxVal === 0) return <span className="text-xs text-slate-600">—</span>;
+                    return trend.map((v, i) => (
+                      <div 
+                        key={i} 
+                        className={`flex-1 rounded-[1px] ${v < 0 ? 'bg-rose-500' : 'bg-blue-500'}`} 
+                        style={{ height: `${Math.max(15, (Math.abs(v)/maxVal)*100)}%` }}
+                        title={formatNumber(v)}
+                      />
+                    ));
+                  })()
+                ) : <span className="text-xs text-slate-600">—</span>}
+              </div>
+            </div>
+            
+            {/* Temettü */}
+            <div className="p-3 rounded-xl bg-[#0d1117] border border-[#2a3050]/50 flex flex-col justify-between">
+              <p className="text-[10px] text-slate-400 mb-1">Temettü Verimi</p>
+              <p className="text-xl font-bold text-emerald-400">{stock.dividends_performance.dividend_yield ? `%${stock.dividends_performance.dividend_yield.toFixed(2)}` : '—'}</p>
+            </div>
+
+            {/* İhracat Gücü */}
+            <div className="p-3 rounded-xl bg-[#0d1117] border border-[#2a3050]/50 flex flex-col justify-between">
+              <p className="text-[10px] text-slate-400 mb-2">İhracat Gücü</p>
+              <div className="w-full flex items-center gap-2">
+                <div className="h-1.5 flex-1 bg-[#111827] rounded-full overflow-hidden">
+                  <div className="h-full bg-blue-500 rounded-full" style={{ width: `${Math.min(100, (stock.scores.export_power ?? 0) * 10)}%` }} />
+                </div>
+                <span className="text-xs font-bold text-white">{stock.scores.export_power ?? 0}/10</span>
+              </div>
+            </div>
+
+            {/* Risk (Altman Z) */}
+            <div className="p-3 rounded-xl bg-[#0d1117] border border-[#2a3050]/50 flex flex-col justify-between">
+              <p className="text-[10px] text-slate-400 mb-1">Risk Skoru</p>
+              {stock.scores.altman_z_score !== null ? (
+                <div className={`mt-auto inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-bold border ${stock.scores.altman_z_score < 1.8 ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' : stock.scores.altman_z_score > 3 ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-amber-500/20 text-amber-400 border-amber-500/30'}`}>
+                  {stock.scores.altman_z_score < 1.8 ? <AlertTriangle className="w-3 h-3" /> : <Shield className="w-3 h-3" />}
+                  {stock.scores.altman_z_score.toFixed(2)}
+                </div>
+              ) : <span className="text-xs text-slate-600">—</span>}
+            </div>
+
+            {/* Sağlık (Piotroski) */}
+            <div className="p-3 rounded-xl bg-[#0d1117] border border-[#2a3050]/50 flex flex-col justify-between">
+              <p className="text-[10px] text-slate-400 mb-1">Sağlık Skoru</p>
+              {stock.scores.piotroski_f_score !== null ? (
+                <div className="flex items-center gap-1 mt-auto">
+                  <span className="text-xl font-bold text-white">{stock.scores.piotroski_f_score}</span>
+                  <span className="text-xs text-slate-500">/ 9</span>
+                </div>
+              ) : <span className="text-xs text-slate-600">—</span>}
             </div>
           </div>
         </div>
