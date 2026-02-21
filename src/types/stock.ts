@@ -144,6 +144,7 @@ export interface Stock {
   scores: StockScores;
   technicals: StockTechnicals | null;
   last_updated: string;
+  fiyat_gecmisi?: number[];
   relative_valuation: StockRelativeValuation;
   rankings: StockRankings;
   ai_insight: string;

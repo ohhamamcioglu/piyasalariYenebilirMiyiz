@@ -23,22 +23,59 @@ interface StockModalProps {
 export default function StockModal({ stock, market, onClose }: StockModalProps) {
   const [historicalData, setHistoricalData] = React.useState<HistoricalPoint[]>([]);
   const [loadingHist, setLoadingHist] = React.useState(true);
+  const [historyFilter, setHistoryFilter] = React.useState<'1M' | '3M' | 'ALL'>('1M');
 
   React.useEffect(() => {
     async function load() {
+      setLoadingHist(true);
       try {
-        const history = await loadHistoricalData(market);
-        const points = history.map(h => {
-          const s = h.data.find(st => st.ticker === stock.ticker);
-          if (!s) return null;
-          return {
-            date: h.metadata.date,
-            price: s.price,
-            graham: s.scores.graham_number,
-            target: s.targets_consensus.target_mean
-          } as HistoricalPoint;
-        }).filter((p): p is HistoricalPoint => p !== null);
-        setHistoricalData(points);
+        if (market === 'BIST' && stock.fiyat_gecmisi && stock.fiyat_gecmisi.length > 0) {
+          const fiyatlar = stock.fiyat_gecmisi;
+          let daysToTake = fiyatlar.length;
+          if (historyFilter === '1M') daysToTake = 22;
+          if (historyFilter === '3M') daysToTake = 66;
+          
+          const slicedFiyatlar = fiyatlar.slice(-daysToTake);
+          const sonGuncelleme = new Date(stock.last_updated || new Date());
+          
+          const points = slicedFiyatlar.map((fiyat, index) => {
+            const daysBack = slicedFiyatlar.length - 1 - index;
+            const currentDate = new Date(sonGuncelleme);
+            let remainingBusinessDays = daysBack;
+            
+            while (remainingBusinessDays > 0) {
+              currentDate.setDate(currentDate.getDate() - 1);
+              if (currentDate.getDay() !== 0 && currentDate.getDay() !== 6) {
+                remainingBusinessDays--;
+              }
+            }
+            
+            return {
+              date: currentDate.toISOString().split('T')[0],
+              price: fiyat,
+              graham: stock.scores.graham_number,
+              target: stock.targets_consensus.target_mean
+            } as HistoricalPoint;
+          });
+          setHistoricalData(points);
+        } else {
+          const history = await loadHistoricalData(market);
+          let points = history.map(h => {
+            const s = h.data.find(st => st.ticker === stock.ticker);
+            if (!s) return null;
+            return {
+              date: h.metadata.date,
+              price: s.price,
+              graham: s.scores.graham_number,
+              target: s.targets_consensus.target_mean
+            } as HistoricalPoint;
+          }).filter((p): p is HistoricalPoint => p !== null);
+          
+          if (historyFilter === '1M') points = points.slice(-22);
+          if (historyFilter === '3M') points = points.slice(-66);
+          
+          setHistoricalData(points);
+        }
       } catch (err) {
         console.error('Error loading historical modal data:', err);
       } finally {
@@ -46,7 +83,7 @@ export default function StockModal({ stock, market, onClose }: StockModalProps) 
       }
     }
     load();
-  }, [stock.ticker, market]);
+  }, [stock, market, historyFilter]);
   const sectorIcon = stock.sector ? SECTOR_ICONS[stock.sector] || '📊' : '📊';
   const radarData = getRadarData(stock);
   const redFlags = getRedFlags(stock);
@@ -139,10 +176,23 @@ export default function StockModal({ stock, market, onClose }: StockModalProps) 
           </div>
 
           {/* Historical Valuation Chart */}
-          <div className="glass-card p-4">
-            <h3 className="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2">
-              <BarChart3 className="w-4 h-4 text-emerald-400" /> Değerleme Geçmişi (Günlük)
-            </h3>
+          <div className="glass-card p-4 flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                <BarChart3 className="w-4 h-4 text-emerald-400" /> Değerleme Geçmişi (Günlük)
+              </h3>
+              <div className="flex bg-[#111827] rounded-lg p-1 border border-[#2a3050]">
+                {(['1M', '3M', 'ALL'] as const).map(filter => (
+                  <button
+                    key={filter}
+                    onClick={() => setHistoryFilter(filter)}
+                    className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${historyFilter === filter ? 'bg-blue-500 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                  >
+                    {filter === 'ALL' ? '1Y' : filter}
+                  </button>
+                ))}
+              </div>
+            </div>
             <div className="h-[260px] relative">
               {loadingHist ? (
                 <div className="absolute inset-0 flex items-center justify-center bg-[#111827]/50 rounded-lg">

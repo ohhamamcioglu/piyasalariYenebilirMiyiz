@@ -47,8 +47,7 @@ export function calculateSuperScore(stock: Stock): number {
 
   // 4. Profitability: ROE (Weight: 15)
   if (stock.profitability.roe !== null) {
-    const roeScore = Math.min(100, Math.max(0, stock.profitability.roe * 200)); // 20% ROE = 40 pts? no, 20% ROE = 100 score here
-    score += (Math.min(100, stock.profitability.roe * 500) / 100) * 15;
+    score += (Math.min(100, Math.max(0, stock.profitability.roe * 500)) / 100) * 15;
     weights += 15;
   }
 
@@ -71,7 +70,7 @@ export function calculateSuperScore(stock: Stock): number {
 }
 
 export async function getAvailableFiles(market: MarketType): Promise<string[]> {
-  const prefix = market === 'BIST' ? 'bist_data_' : 'midas_data_';
+  const prefix = market === 'BIST' ? 'bist_' : 'midas_data_';
   try {
     const res = await fetch('/data/file-list.json');
     if (res.ok) {
@@ -86,7 +85,7 @@ export async function getAvailableFiles(market: MarketType): Promise<string[]> {
   }
   const today = new Date().toISOString().slice(0, 10);
   console.info(`[getAvailableFiles] Falling back to today's date: ${today}`);
-  return [`${prefix}${today}.json`];
+  return [`${prefix === 'bist_' ? 'bist_all_data' : prefix + today}.json`];
 }
 
 export async function loadHistoricalData(market: MarketType): Promise<MarketData[]> {
