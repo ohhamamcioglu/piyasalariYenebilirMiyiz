@@ -2,148 +2,76 @@
 
 import React from 'react';
 import { Stock } from '@/types/stock';
-import { getSectorGroups, translateSector } from '@/lib/dataUtils';
-import { Treemap, ResponsiveContainer, Tooltip } from 'recharts';
+import { getSectorGroups, formatMarketCap, SECTOR_ICONS, translateSector } from '@/lib/dataUtils';
 
 interface MarketHeatmapProps {
   stocks: Stock[];
   onSectorClick: (sectorName: string) => void;
 }
 
-const CustomizedContent = (props: any) => {
-  const { root, depth, x, y, width, height, index, payload, name, color, originalName, originalSector } = props;
+export default function MarketHeatmap({ stocks, onSectorClick }: MarketHeatmapProps) {
+  const sectorGroups = getSectorGroups(stocks);
+  const sectors = Object.entries(sectorGroups)
+    .map(([name, sectorStocks]) => ({
+      name,
+      stocks: sectorStocks,
+      totalCap: sectorStocks.reduce((sum, s) => sum + (s.market_cap ?? 0), 0),
+      avgMomentum: sectorStocks.filter(s => s.technicals?.momentum_1m !== null && s.technicals?.momentum_1m !== undefined)
+        .reduce((sum, s, _, arr) => sum + (s.technicals?.momentum_1m ?? 0) / arr.length, 0),
+      avgScore: sectorStocks.filter(s => s.scores.super_score !== null)
+        .reduce((sum, s, _, arr) => sum + (s.scores.super_score ?? 0) / arr.length, 0),
+    }))
+    .sort((a, b) => b.totalCap - a.totalCap);
 
-  if (width < 20 || height < 20) return <g></g>;
+  const totalCap = sectors.reduce((sum, s) => sum + s.totalCap, 0);
 
-  const handlePointerDown = (e: any) => {
-    // If we click a stock, we pass its originalSector to filter. If a sector, its originalName.
-    if (props.onSectorClick) {
-      if (depth === 2 && originalSector) {
-        props.onSectorClick(originalSector);
-      } else if (originalName) {
-        props.onSectorClick(originalName);
-      }
-    }
+  const getMomentumColor = (momentum: number) => {
+    if (momentum > 0.1) return 'bg-emerald-600/60 hover:bg-emerald-600/80';
+    if (momentum > 0.05) return 'bg-emerald-700/50 hover:bg-emerald-700/70';
+    if (momentum > 0) return 'bg-emerald-900/40 hover:bg-emerald-900/60';
+    if (momentum > -0.05) return 'bg-red-900/40 hover:bg-red-900/60';
+    if (momentum > -0.1) return 'bg-red-700/50 hover:bg-red-700/70';
+    return 'bg-red-600/60 hover:bg-red-600/80';
   };
 
   return (
-    <g>
-      <rect
-        x={x}
-        y={y}
-        width={width}
-        height={height}
-        style={{
-          fill: depth === 1 ? 'rgba(0,0,0,0)' : (color || '#334155'),
-          stroke: '#1e293b', // 1px slate/zinc spacing
-          strokeWidth: 1,
-          strokeOpacity: 1,
-          cursor: 'pointer'
-        }}
-        onPointerDown={handlePointerDown}
-      />
-      {depth === 1 && width > 60 && height > 30 ? (
-        <text x={x + width / 2} y={y + 18} textAnchor="middle" fill="#e2e8f0" fontSize={13} fillOpacity={0.9} fontWeight="bold" style={{ pointerEvents: 'none', textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}>
-          {name}
-        </text>
-      ) : null}
-      {depth === 2 && width > 35 && height > 24 ? (
-        <text x={x + width / 2} y={y + height / 2 + 4} textAnchor="middle" fill="#f8fafc" fontSize={11} fontWeight="600" style={{ pointerEvents: 'none' }}>
-          {name}
-        </text>
-      ) : null}
-    </g>
-  );
-};
-
-const CustomTooltip = ({ active, payload }: any) => {
-  if (active && payload && payload.length) {
-    const data = payload[0].payload;
-    if (data.depth === 1) {
-      return (
-        <div className="glass-card p-2 bg-[#1f2937] border-[#374151] rounded-lg shadow-xl text-xs z-50">
-          <p className="font-bold text-white">{data.name}</p>
-        </div>
-      );
-    }
-    const iscoText = data.discount < 0 ? `%${Math.abs(data.discount * 100).toFixed(1)} İskonto` : `%${Math.abs(data.discount * 100).toFixed(1)} Prim`;
-    
-    return (
-      <div className="glass-card p-3 bg-[#1f2937] border-[#374151] rounded-xl shadow-xl z-50 min-w-[140px]">
-        <p className="font-bold text-white text-sm mb-1">{data.name}</p>
-        <p className="text-xs text-slate-400 mb-2">{translateSector(data.originalSector)}</p>
-        <div className={`text-xs font-semibold px-2 py-1 inline-block rounded-md ${data.discount < 0 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/20 text-red-400 border border-red-500/20'}`}>
-          {data.discount === 0 ? 'Nötr Değerleme' : iscoText}
-        </div>
-      </div>
-    );
-  }
-  return null;
-};
-
-export default function MarketHeatmap({ stocks, onSectorClick }: MarketHeatmapProps) {
-  const sectorGroups = getSectorGroups(stocks);
-  const data = Object.entries(sectorGroups)
-    .map(([name, sectorStocks]) => {
-      return {
-        name: translateSector(name),
-        originalName: name,
-        children: sectorStocks.map(s => {
-          const discount = s.relative_valuation?.discount_premium_pe ?? 0;
-          const colorVal = Math.max(-1, Math.min(1, discount));
-          let color = '#334155'; // neutral slate
-          if (colorVal < 0) {
-            const intensity = Math.min(1, Math.abs(colorVal) / 0.5);
-            // Muted Emerald
-            color = `rgba(16, 185, 129, ${0.15 + intensity * 0.7})`;
-          } else if (colorVal > 0) {
-            const intensity = Math.min(1, colorVal / 0.5);
-            // Muted Rose
-            color = `rgba(225, 29, 72, ${0.15 + intensity * 0.7})`;
-          }
-
-          return {
-            name: s.ticker,
-            size: s.market_cap || 1,
-            discount: discount,
-            color: color,
-            originalSector: name
-          };
-        })
-      };
-    })
-    // Sort sectors by total cap so they pack nicely
-    .sort((a, b) => {
-      const capA = a.children.reduce((sum, c) => sum + c.size, 0);
-      const capB = b.children.reduce((sum, c) => sum + c.size, 0);
-      return capB - capA;
-    });
-
-  return (
     <div className="glass-card p-5 mb-8">
-      <h3 className="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2">
-        <span>📊</span> Sektörel Isı Haritası (İskonto / Prim)
-      </h3>
-      <div className="h-[450px] w-full">
-        <ResponsiveContainer width="100%" height="100%">
-          <Treemap
-            data={data}
-            dataKey="size"
-            aspectRatio={4 / 3}
-            stroke="#111827"
-            fill="#8884d8"
-            content={<CustomizedContent onSectorClick={onSectorClick} />}
-            isAnimationActive={false}
-          >
-            <Tooltip content={<CustomTooltip />} wrapperStyle={{ zIndex: 100 }} />
-          </Treemap>
-        </ResponsiveContainer>
+      <h3 className="text-sm font-semibold text-slate-300 mb-4">📊 Sektör Haritası</h3>
+      <div className="flex flex-wrap gap-1.5">
+        {sectors.map(sector => {
+          const widthPercent = Math.max(8, (sector.totalCap / totalCap) * 100);
+          return (
+            <div
+              key={sector.name}
+              className={`heatmap-block rounded-lg p-3 ${getMomentumColor(sector.avgMomentum)} border border-white/5 cursor-pointer transition-colors`}
+              style={{ flexBasis: `${widthPercent}%`, flexGrow: 1, minWidth: '120px' }}
+              onClick={() => onSectorClick(sector.name)}
+            >
+              <div className="flex items-center gap-1.5 mb-1">
+                <span className="text-sm">{SECTOR_ICONS[sector.name] || '📊'}</span>
+                <span className="text-xs font-semibold text-white truncate">{translateSector(sector.name)}</span>
+              </div>
+              <div className="flex items-end justify-between">
+                <div>
+                  <p className="text-[10px] text-white/60">{sector.stocks.length} hisse</p>
+                  <p className="text-[10px] text-white/60">{formatMarketCap(sector.totalCap)}</p>
+                </div>
+                <div className="text-right">
+                  <p className={`text-xs font-bold ${sector.avgMomentum >= 0 ? 'text-emerald-300' : 'text-red-300'}`}>
+                    {sector.avgMomentum >= 0 ? '+' : ''}{(sector.avgMomentum * 100).toFixed(1)}%
+                  </p>
+                  <p className="text-[10px] text-white/40">Ort. Skor: {Math.round(sector.avgScore)}</p>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
-      <div className="flex items-center justify-center gap-4 mt-4 pt-4 border-t border-[#2a3050]/50 text-[10px] sm:text-xs text-slate-500">
-        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-emerald-600/60" /> İskontolu (Ucuz)</span>
-        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-[#334155]" /> Normal</span>
-        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-rose-600/60" /> Primli (Pahalı)</span>
-        <span className="hidden sm:inline">• Kutu büyüklüğü = Piyasa Değeri • Tıklayarak sektörü filtreleyin</span>
+      {/* Legend */}
+      <div className="flex items-center justify-center gap-4 mt-3 text-[10px] text-slate-500">
+        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-emerald-600/60" /> Yükseliş</span>
+        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-600/60" /> Düşüş</span>
+        <span>Kutu büyüklüğü = Sektör Piyasa Değeri • Tıklayarak filtreleyin</span>
       </div>
     </div>
   );
