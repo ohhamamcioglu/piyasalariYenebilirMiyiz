@@ -18,12 +18,14 @@ interface StockModalProps {
   stock: Stock;
   market: MarketType;
   onClose: () => void;
+  macros?: Record<string, number[]>;
 }
 
-export default function StockModal({ stock, market, onClose }: StockModalProps) {
+export default function StockModal({ stock, market, macros, onClose }: StockModalProps) {
   const [historicalData, setHistoricalData] = React.useState<HistoricalPoint[]>([]);
   const [loadingHist, setLoadingHist] = React.useState(true);
   const [historyFilter, setHistoryFilter] = React.useState<'1M' | '3M' | 'ALL'>('1M');
+  const [showUsd, setShowUsd] = React.useState(false);
 
   React.useEffect(() => {
     async function load() {
@@ -93,8 +95,28 @@ export default function StockModal({ stock, market, onClose }: StockModalProps) 
   const momentum1m = stock.technicals?.momentum_1m;
   const isUp = momentum1m !== null && momentum1m !== undefined && momentum1m > 0;
 
+  const usdRates = React.useMemo(() => {
+    return stock.market_cap ? (stock.currency !== 'USD' ? (macros?.USD_TRY || []) : []) : [];
+  }, [stock.market_cap, stock.currency, macros?.USD_TRY]);
+  
+  const lastUsdRate = usdRates.length > 0 ? usdRates[usdRates.length - 1] : 1;
+
   // Historical Valuation chart data
-  const chartData = historicalData;
+  const chartData = React.useMemo(() => {
+    return historicalData.map((p, i) => {
+      if (!showUsd || market !== 'BIST') return p;
+      const daysBack = historicalData.length - 1 - i;
+      const usdIndex = usdRates.length - 1 - daysBack;
+      const usdRate = usdIndex >= 0 && usdIndex < usdRates.length ? usdRates[usdIndex] : 1;
+      
+      return {
+        ...p,
+        price: p.price !== null ? p.price / usdRate : null,
+        graham: p.graham !== null ? p.graham / lastUsdRate : null,
+        target: p.target !== null ? p.target / lastUsdRate : null,
+      };
+    });
+  }, [historicalData, showUsd, usdRates, lastUsdRate, market]);
 
   return (
     <div className="fixed inset-0 z-50 modal-overlay flex items-start justify-center overflow-y-auto py-8 px-4" onClick={onClose}>
@@ -181,16 +203,26 @@ export default function StockModal({ stock, market, onClose }: StockModalProps) 
               <h3 className="text-sm font-semibold text-slate-300 flex items-center gap-2">
                 <BarChart3 className="w-4 h-4 text-emerald-400" /> Değerleme Geçmişi (Günlük)
               </h3>
-              <div className="flex bg-[#111827] rounded-lg p-1 border border-[#2a3050]">
-                {(['1M', '3M', 'ALL'] as const).map(filter => (
+              <div className="flex items-center gap-3">
+                {market === 'BIST' && (
                   <button
-                    key={filter}
-                    onClick={() => setHistoryFilter(filter)}
-                    className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${historyFilter === filter ? 'bg-blue-500 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                    onClick={() => setShowUsd(!showUsd)}
+                    className={`px-3 py-1 text-xs font-semibold rounded-md border transition-all ${showUsd ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50' : 'bg-[#111827] text-slate-400 border-[#2a3050] hover:text-white'}`}
                   >
-                    {filter === 'ALL' ? '1Y' : filter}
+                    $ Bazlı
                   </button>
-                ))}
+                )}
+                <div className="flex bg-[#111827] rounded-lg p-1 border border-[#2a3050]">
+                  {(['1M', '3M', 'ALL'] as const).map(filter => (
+                    <button
+                      key={filter}
+                      onClick={() => setHistoryFilter(filter)}
+                      className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${historyFilter === filter ? 'bg-blue-500 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                    >
+                      {filter === 'ALL' ? '1Y' : filter}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
             <div className="h-[260px] relative">

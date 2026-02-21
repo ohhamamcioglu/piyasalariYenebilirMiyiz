@@ -18,6 +18,8 @@ interface SearchFilterProps {
   minScore: number;
   onMinScoreChange: (value: number) => void;
   totalResults: number;
+  quickFilter?: string | null;
+  onQuickFilterChange?: (filter: string | null) => void;
 }
 
 const SORT_OPTIONS: { value: SortField; label: string }[] = [
@@ -39,7 +41,14 @@ export default function SearchFilter({
   sortDirection, onSortDirectionChange,
   minScore, onMinScoreChange,
   totalResults,
+  quickFilter, onQuickFilterChange,
 }: SearchFilterProps) {
+  const handleQuickFilter = (type: string) => {
+    if (onQuickFilterChange) {
+      onQuickFilterChange(quickFilter === type ? null : type);
+    }
+  };
+
   return (
     <div className="glass-card p-4 mb-6">
       <div className="flex flex-col lg:flex-row gap-3">
@@ -97,6 +106,28 @@ export default function SearchFilter({
             {sortDirection === 'asc' ? '↑' : '↓'}
           </button>
         </div>
+      </div>
+
+      {/* Quick Filters */}
+      <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-[#2a3050]/30">
+        <button
+          onClick={() => handleQuickFilter('dolar_dip')}
+          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${quickFilter === 'dolar_dip' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50' : 'bg-[#0d1117] text-slate-400 border border-[#2a3050] hover:text-white hover:border-slate-500'}`}
+        >
+          🎯 Dolar Bazlı Dip Avcısı
+        </button>
+        <button
+          onClick={() => handleQuickFilter('kar_ivmesi')}
+          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${quickFilter === 'kar_ivmesi' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/50' : 'bg-[#0d1117] text-slate-400 border border-[#2a3050] hover:text-white hover:border-slate-500'}`}
+        >
+          📈 Kâr İvmelenmesi
+        </button>
+        <button
+          onClick={() => handleQuickFilter('yasar_erdinc')}
+          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${quickFilter === 'yasar_erdinc' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/50' : 'bg-[#0d1117] text-slate-400 border border-[#2a3050] hover:text-white hover:border-slate-500'}`}
+        >
+          ⭐ Yaşar Erdinç Favorileri
+        </button>
       </div>
 
       {/* Score Slider + Result Count */}

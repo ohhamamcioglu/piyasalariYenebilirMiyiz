@@ -4,11 +4,13 @@ import React, { useState, useEffect, useMemo, useRef, useCallback, Suspense } fr
 import { useSearchParams } from 'next/navigation';
 import { Stock, MarketData, MarketType, SortField, SortDirection } from '@/types/stock';
 import StockCard from '@/components/stocks/StockCard';
+import StockTable from '@/components/stocks/StockTable';
 import StockModal from '@/components/stocks/StockModal';
 import SearchFilter from '@/components/stocks/SearchFilter';
 import { filterStocks, sortStocks, getSectors, getMarketStats, getTopByScore, getTopByDividend, getTopUndervalued, getTopMomentum, loadMarketData } from '@/lib/dataUtils';
 import MarketStats from '@/components/dashboard/MarketStats';
 import MarketHeatmap from '@/components/dashboard/MarketHeatmap';
+import MacroPanel from '@/components/dashboard/MacroPanel';
 import { TopByScore, TopByDividend, TopUndervalued, TopByMomentum } from '@/components/dashboard/TopPicksCarousel';
 import { Loader2, RefreshCw } from 'lucide-react';
 
@@ -31,6 +33,8 @@ function StockPageContent({ market, title, flag }: StockPageClientProps) {
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [minScore, setMinScore] = useState(0);
   const [visibleCount, setVisibleCount] = useState(30);
+  const [quickFilter, setQuickFilter] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
 
   const filterRef = useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams();
@@ -68,9 +72,9 @@ function StockPageContent({ market, title, flag }: StockPageClientProps) {
   const stats = useMemo(() => getMarketStats(allStocks), [allStocks]);
 
   const filteredStocks = useMemo(() => {
-    const filtered = filterStocks(allStocks, { search, sector, minScore: minScore > 0 ? minScore : undefined });
+    const filtered = filterStocks(allStocks, { search, sector, minScore: minScore > 0 ? minScore : undefined, quickFilter });
     return sortStocks(filtered, sortField, sortDirection);
-  }, [allStocks, search, sector, sortField, sortDirection, minScore]);
+  }, [allStocks, search, sector, sortField, sortDirection, minScore, quickFilter]);
 
   const visibleStocks = useMemo(() => filteredStocks.slice(0, visibleCount), [filteredStocks, visibleCount]);
 
@@ -127,6 +131,9 @@ function StockPageContent({ market, title, flag }: StockPageClientProps) {
         </p>
       </div>
 
+      {/* Macros */}
+      <MacroPanel macros={data?.macros} />
+
       {/* Stats */}
       <MarketStats stats={stats} marketName={market === 'BIST' ? 'BIST' : 'ABD Borsası'} date={data?.metadata.date ?? ''} />
 
@@ -154,15 +161,39 @@ function StockPageContent({ market, title, flag }: StockPageClientProps) {
           minScore={minScore}
           onMinScoreChange={(v) => { setMinScore(v); setVisibleCount(30); }}
           totalResults={filteredStocks.length}
+          quickFilter={quickFilter}
+          onQuickFilterChange={(v) => { setQuickFilter(v); setVisibleCount(30); }}
         />
       </div>
 
-      {/* Stock List */}
-      <div className="space-y-2">
-        {visibleStocks.map((stock, i) => (
-          <StockCard key={stock.ticker} stock={stock} onClick={setSelectedStock} index={i} />
-        ))}
+      {/* View Toggle */}
+      <div className="flex justify-end mb-4">
+        <div className="flex bg-[#0d1117] rounded-lg p-1 border border-[#2a3050]">
+          <button
+            onClick={() => setViewMode('grid')}
+            className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${viewMode === 'grid' ? 'bg-blue-500 text-white shadow-sm' : 'text-slate-500 hover:text-white'}`}
+          >
+            Ayrıntılı Kartlar
+          </button>
+          <button
+            onClick={() => setViewMode('table')}
+            className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${viewMode === 'table' ? 'bg-blue-500 text-white shadow-sm' : 'text-slate-500 hover:text-white'}`}
+          >
+            Liste Görünümü
+          </button>
+        </div>
       </div>
+
+      {/* Stock List */}
+      {viewMode === 'grid' ? (
+        <div className="space-y-2">
+          {visibleStocks.map((stock, i) => (
+            <StockCard key={stock.ticker} stock={stock} onClick={setSelectedStock} index={i} />
+          ))}
+        </div>
+      ) : (
+        <StockTable stocks={visibleStocks} onStockClick={setSelectedStock} />
+      )}
 
       {/* Load More */}
       {visibleCount < filteredStocks.length && (
@@ -178,7 +209,7 @@ function StockPageContent({ market, title, flag }: StockPageClientProps) {
 
       {/* Modal */}
       {selectedStock && (
-        <StockModal stock={selectedStock} market={market} onClose={() => setSelectedStock(null)} />
+        <StockModal stock={selectedStock} market={market} macros={data?.macros} onClose={() => setSelectedStock(null)} />
       )}
     </div>
   );

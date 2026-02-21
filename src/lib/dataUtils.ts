@@ -102,6 +102,7 @@ export function transformBistStock(raw: any): Stock {
       gross_margin: raw.karlılık?.brüt_marj ?? null,
       ebitda_margin: raw.karlılık?.favok_marjı ?? null,
       roe_stability: raw.karlılık?.ozsermaye_istikrarı ?? null,
+      ceyreklik_kar_trendi: raw.karlılık?.ceyreklik_kar_trendi ?? null,
     },
     growth: {
       revenue_growth: raw.buyume?.satıs_buyumesi ?? null,
@@ -175,6 +176,7 @@ export function transformBistStock(raw: any): Stock {
       momentum_3m: raw.teknik_analiz.momentum_3m ?? null,
       momentum_1y: raw.teknik_analiz.momentum_1y ?? null,
       price_vs_sma200: raw.teknik_analiz.price_vs_sma200 ?? null,
+      dolar_bazli_mesafe: raw.teknik_analiz.dolar_bazlı?.dolar_ortalama_mesafesi ?? null,
     } : null,
     last_updated: raw.last_updated ?? '',
     fiyat_gecmisi: raw.fiyat_gecmisi ?? [],
@@ -237,6 +239,7 @@ export function filterStocks(
     hasTarget?: boolean;
     hasDividend?: boolean;
     safeOnly?: boolean;
+    quickFilter?: string | null;
   }
 ): Stock[] {
   return stocks.filter(s => {
@@ -258,6 +261,17 @@ export function filterStocks(
     if (filters.hasTarget && !s.targets_consensus.target_mean) return false;
     if (filters.hasDividend && !s.dividends_performance.dividend_yield) return false;
     if (filters.safeOnly && (s.scores.altman_z_score === null || s.scores.altman_z_score < 3)) return false;
+
+    if (filters.quickFilter === 'dolar_dip') {
+      if (s.technicals?.dolar_bazli_mesafe === undefined || s.technicals.dolar_bazli_mesafe === null || s.technicals.dolar_bazli_mesafe > 0) return false;
+    }
+    if (filters.quickFilter === 'kar_ivmesi') {
+      const trend = s.profitability.ceyreklik_kar_trendi;
+      if (!trend || trend.length < 2 || trend[trend.length - 1] <= trend[trend.length - 2]) return false;
+    }
+    if (filters.quickFilter === 'yasar_erdinc') {
+      if (!s.scores.yasar_erdinc_score || s.scores.yasar_erdinc_score.stages_passed < 4) return false;
+    }
 
     return true;
   });

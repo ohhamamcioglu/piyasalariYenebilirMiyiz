@@ -16,6 +16,7 @@ export interface StockProfitability {
   gross_margin: number | null;
   ebitda_margin: number | null;
   roe_stability?: number | null;
+  ceyreklik_kar_trendi?: number[] | null;
 }
 
 export interface StockGrowth {
@@ -110,6 +111,7 @@ export interface StockTechnicals {
   momentum_3m: number | null;
   momentum_1y: number | null;
   price_vs_sma200: number | null;
+  dolar_bazli_mesafe?: number | null;
 }
 
 export interface StockRelativeValuation {
@@ -161,6 +163,7 @@ export interface MarketData {
       message: string;
     };
   };
+  macros?: Record<string, number[]>;
   data: Stock[];
 }
 

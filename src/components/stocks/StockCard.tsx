@@ -24,6 +24,30 @@ export default function StockCard({ stock, onClick, index }: StockCardProps) {
   const discount = stock.relative_valuation?.discount_premium_pe;
   const isDiscounted = discount !== null && discount !== undefined && discount < 0;
 
+  const karTrendi = stock.profitability?.ceyreklik_kar_trendi;
+
+  const renderTrendBars = () => {
+    if (!karTrendi || karTrendi.length === 0) return null;
+    const maxVal = Math.max(...karTrendi.map(Math.abs));
+    if (maxVal === 0) return null;
+
+    return (
+      <div className="flex items-end gap-[2px] h-4 opacity-80" title="Çeyreklik Kâr Trendi">
+        {karTrendi.map((val, i) => {
+          const heightPct = Math.max(20, (Math.abs(val) / maxVal) * 100);
+          const isNegative = val < 0;
+          return (
+            <div
+              key={i}
+              className={`w-1.5 rounded-[1px] ${isNegative ? 'bg-red-500/80' : 'bg-blue-400/80'}`}
+              style={{ height: `${heightPct}%` }}
+            />
+          );
+        })}
+      </div>
+    );
+  };
+
   return (
     <div
       onClick={() => onClick(stock)}
@@ -43,7 +67,10 @@ export default function StockCard({ stock, onClick, index }: StockCardProps) {
             )}
           </div>
           <p className="text-xs text-slate-500 truncate max-w-[200px]">{stock.name}</p>
-          <p className="text-[10px] text-slate-600 mt-0.5">{translateSector(stock.sector)}</p>
+          <div className="flex items-center gap-3 mt-1.5">
+            <p className="text-[10px] text-slate-600">{translateSector(stock.sector)}</p>
+            {renderTrendBars()}
+          </div>
         </div>
 
         {/* Center: Price + Momentum */}
