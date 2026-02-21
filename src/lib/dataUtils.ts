@@ -122,57 +122,59 @@ export function transformBistStock(raw: any): Stock {
       "52w_low": raw.temettu_verimi?.["52w_low"] ?? null,
     },
     cash_flow: {
-      free_cash_flow: raw.nakit_akısı?.serbest_nakit_akısı ?? null,
+      free_cash_flow: raw.nakit_akısı?.free_cash_flow ?? null,
       operating_cash_flow: raw.nakit_akısı?.isletme_nakit_akısı ?? null,
-      price_to_free_cash_flow: raw.nakit_akısı?.fiyat_serbest_nakit_akısı ?? null,
+      price_to_free_cash_flow: raw.nakit_akısı?.price_to_free_cash_flow ?? null,
     },
     targets_consensus: {
-      target_high: raw.targets_consensus?.analist_hedefi_en_yuksek ?? null,
-      target_low: raw.targets_consensus?.analist_hedefi_en_dusuk ?? null,
-      target_mean: raw.targets_consensus?.analist_hedefi_ortalama ?? null,
-      target_median: raw.targets_consensus?.analist_hedefi_ortalama ?? null,
-      recommendation: raw.targets_consensus?.tavsiye ?? null,
-      number_of_analysts: raw.targets_consensus?.analist_sayısı ?? null,
+      target_high: raw.targets_consensus?.target_high ?? null,
+      target_low: raw.targets_consensus?.target_low ?? null,
+      target_mean: raw.targets_consensus?.target_mean ?? null,
+      target_median: raw.targets_consensus?.target_median ?? null,
+      recommendation: raw.targets_consensus?.recommendation ?? null,
+      number_of_analysts: raw.targets_consensus?.number_of_analysts ?? null,
     },
     efficiency: {
-      revenue_per_employee: raw.efficiency?.calısan_basına_gelir ?? null,
-      revenue_per_share: raw.efficiency?.hisse_basına_gelir ?? null,
-      asset_turnover: raw.efficiency?.aktif_devir_hızı ?? null,
+      revenue_per_employee: raw.efficiency?.revenue_per_employee ?? null,
+      revenue_per_share: raw.efficiency?.revenue_per_share ?? null,
+      asset_turnover: raw.efficiency?.asset_turnover ?? null,
+      operating_income: raw.efficiency?.operating_income ?? null,
     },
     scores: {
-      piotroski_f_score: raw.uzman_skorları?.piotroski_f ?? null,
-      altman_z_score: raw.uzman_skorları?.altman_z ?? null,
-      graham_number: raw.uzman_skorları?.graham_degeri ?? null,
-      yasar_erdinc_score: raw.uzman_skorları?.yasar_erdinc_skoru ? {
-        score: raw.uzman_skorları.yasar_erdinc_skoru.score ?? 0,
-        stages_passed: raw.uzman_skorları.yasar_erdinc_skoru.stages_passed ?? 0,
-        roe_target_price: raw.uzman_skorları.yasar_erdinc_skoru.roe_target_price ?? null
+      piotroski_f_score: raw.uzman_skorları?.piotroski_skoru ?? null,
+      altman_z_score: raw.uzman_skorları?.altman_z_iflas_riski ?? null,
+      graham_number: raw.uzman_skorları?.graham_number ?? null,
+      yasar_erdinc_score: raw.uzman_skorları?.yasar_erdinc_potansiyel !== undefined ? {
+        score: raw.uzman_skorları.yasar_erdinc_potansiyel,
+        stages_passed: 0,
+        roe_target_price: null
       } : undefined,
-      magic_formula: raw.uzman_skorları?.sihirli_formul ? {
-        earnings_yield: raw.uzman_skorları.sihirli_formul.earnings_yield ?? null,
-        roc: raw.uzman_skorları.sihirli_formul.roc ?? null,
-        magic_formula_rank: raw.uzman_skorları.sihirli_formul.magic_formula_rank ?? null
+      magic_formula: raw.uzman_skorları?.magic_formula ? {
+        earnings_yield: raw.uzman_skorları.magic_formula.ey ?? null,
+        roc: raw.uzman_skorları.magic_formula.roc ?? null,
+        magic_formula_rank: null
       } : undefined,
-      canslim_score: raw.uzman_skorları?.canslim_skoru ? {
-        score: raw.uzman_skorları.canslim_skoru.score ?? 0,
-        points: raw.uzman_skorları.canslim_skoru.points ?? 0
+      canslim_score: raw.uzman_skorları?.canslim_score !== undefined ? {
+        score: raw.uzman_skorları.canslim_score,
+        points: 0
       } : undefined,
-      strategic_radars: raw.uzman_skorları?.stratejik_radarlar ? {
-        radar_1: raw.uzman_skorları.stratejik_radarlar.radar_1,
-        radar_3: raw.uzman_skorları.stratejik_radarlar.radar_3,
-        radar_6: raw.uzman_skorları.stratejik_radarlar.radar_6,
+      strategic_radars: raw.uzman_skorları?.strategic_radars ? {
+        radar_1: { passed: raw.uzman_skorları.strategic_radars.score > 0, score: 0 },
+        radar_3: { passed: raw.uzman_skorları.strategic_radars.score > 1, score: 0 },
+        radar_6: { passed: raw.uzman_skorları.strategic_radars.score > 2, score: 0 },
       } : undefined,
-      super_score: raw.uzman_skorları?.super_skor ?? null,
+      master_score: raw.uzman_skorları?.master_skor ?? null,
+      super_score: raw.uzman_skorları?.super_score ?? null,
     },
     technicals: raw.teknik_analiz ? {
       sma_50: raw.teknik_analiz.sma_50 ?? null,
-      sma_200: raw.teknik_analiz.sma_200 ?? null,
-      rsi_14: raw.teknik_analiz.rsi_14 ?? null,
+      sma_200: raw.teknik_analiz.ortalama_200 ?? null,
+      rsi_14: raw.teknik_analiz.rsi_gucu ?? null,
       momentum_10d: raw.teknik_analiz.momentum_10d ?? null,
       momentum_1m: raw.teknik_analiz.momentum_1m ?? null,
       momentum_3m: raw.teknik_analiz.momentum_3m ?? null,
       momentum_1y: raw.teknik_analiz.momentum_1y ?? null,
-      price_vs_sma200: raw.teknik_analiz.fiyat_sma200_oranı ?? null,
+      price_vs_sma200: raw.teknik_analiz.price_vs_sma200 ?? null,
     } : null,
     last_updated: raw.last_updated ?? '',
     fiyat_gecmisi: raw.fiyat_gecmisi ?? [],
@@ -183,6 +185,7 @@ export function transformBistStock(raw: any): Stock {
     rankings: {
       pe_rank: raw.piyasa_sıralaması?.fk_sırası,
       pe_rank_int: raw.piyasa_sıralaması?.pe_rank_int,
+      dividend_rank: raw.piyasa_sıralaması?.temettu_sırası,
       growth_rank: raw.piyasa_sıralaması?.buyume_sırası,
       super_score_rank: raw.piyasa_sıralaması?.genel_sıralama,
     },
