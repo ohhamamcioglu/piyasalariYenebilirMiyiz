@@ -7,6 +7,7 @@ import StockCard from '@/components/stocks/StockCard';
 import StockTable from '@/components/stocks/StockTable';
 import StockModal from '@/components/stocks/StockModal';
 import SearchFilter from '@/components/stocks/SearchFilter';
+import KapAlerts from '@/components/stocks/KapAlerts';
 import { filterStocks, sortStocks, getSectors, getMarketStats, getTopByScore, getTopByDividend, getTopUndervalued, getTopMomentum, loadMarketData } from '@/lib/dataUtils';
 import MarketStats from '@/components/dashboard/MarketStats';
 import MarketHeatmap from '@/components/dashboard/MarketHeatmap';
@@ -136,6 +137,9 @@ function StockPageContent({ market, title, flag }: StockPageClientProps) {
 
       {/* Stats */}
       <MarketStats stats={stats} marketName={market === 'BIST' ? 'BIST' : 'ABD Borsası'} date={data?.metadata.date ?? ''} />
+
+      {/* Real-time Alerts */}
+      {market === 'BIST' && <KapAlerts />}
 
       {/* Heatmap */}
       <MarketHeatmap stocks={allStocks} onSectorClick={handleSectorClick} />

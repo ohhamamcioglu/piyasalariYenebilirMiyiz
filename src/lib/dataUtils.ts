@@ -1,11 +1,11 @@
 import { Stock, MarketData, MarketType, SortField, SortDirection } from '@/types/stock';
 
+export const GITHUB_DATA_BASE = 'https://raw.githubusercontent.com/ohhamamcioglu/piyasaRadar/main';
+
 // ─── Data Loading ───────────────────────────────────
 export async function loadMarketData(market: MarketType): Promise<MarketData> {
-  const files = await getAvailableFiles(market);
-  if (files.length === 0) throw new Error(`${market} verisi bulunamadı`);
-  const latestFile = files[files.length - 1];
-  const res = await fetch(`/data/${latestFile}`);
+  const latestFile = market === 'BIST' ? 'bist_all_data.json' : 'midas_all_data.json';
+  const res = await fetch(`${GITHUB_DATA_BASE}/${latestFile}`);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const data: any = await res.json();
 
@@ -205,7 +205,7 @@ export function transformBistStock(raw: any): Stock {
 export async function getAvailableFiles(market: MarketType): Promise<string[]> {
   const prefix = market === 'BIST' ? 'bist_' : 'midas_data_';
   try {
-    const res = await fetch('/data/file-list.json');
+    const res = await fetch(`${GITHUB_DATA_BASE}/file-list.json`);
     if (res.ok) {
       const list: string[] = await res.json();
       const filtered = list.filter(f => f.startsWith(prefix)).sort();
@@ -226,7 +226,7 @@ export async function loadHistoricalData(market: MarketType): Promise<MarketData
   const results: MarketData[] = [];
   for (const file of files) {
     try {
-      const res = await fetch(`/data/${file}`);
+      const res = await fetch(`${GITHUB_DATA_BASE}/${file}`);
       if (res.ok) results.push(await res.json());
     } catch { /* Skip bad files */ }
   }
