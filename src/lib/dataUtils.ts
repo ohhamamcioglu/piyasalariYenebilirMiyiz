@@ -1,32 +1,39 @@
 import { Stock, MarketData, MarketType, SortField, SortDirection } from '@/types/stock';
 
-export const GITHUB_DATA_BASE = 'https://raw.githubusercontent.com/ohhamamcioglu/piyasaRadar/main';
+// ─── Data Loading Proxy ───────────────────────────────
+const DATA_PROXY_URL = '/api/proxy-data';
 
 // ─── Data Loading ───────────────────────────────────
 export async function loadMarketData(market: MarketType): Promise<MarketData> {
   const latestFile = market === 'BIST' ? 'bist_all_data.json' : 'midas_all_data.json';
   
-  const token = process.env.NEXT_PUBLIC_GITHUB_TOKEN || process.env.GITHUB_ACCESS_TOKEN;
-  const headers: Record<string, string> = {};
-  if (token) headers['Authorization'] = `token ${token}`;
-
-  const res = await fetch(`${GITHUB_DATA_BASE}/${latestFile}`, { headers });
-  if (!res.ok) throw new Error(`Veri alınamadı: ${GITHUB_DATA_BASE}/${latestFile} (HTTP ${res.status})`);
+  const res = await fetch(`${DATA_PROXY_URL}?file=${latestFile}`);
+  if (!res.ok) throw new Error(`Veri alınamadı: ${DATA_PROXY_URL}?file=${latestFile} (HTTP ${res.status})`);
   
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let data: any = await res.json();
 
-  // Normalize US data if it's just an array or lacks metadata
+  // Normalize US data if it lacks the standard structure
   if (market === 'US') {
     if (Array.isArray(data)) {
       data = {
         metadata: { date: new Date().toISOString().split('T')[0], scan_time: new Date().toISOString() },
         data: data
       };
-    } else if (data.data && !data.metadata) {
-      data.metadata = { date: new Date().toISOString().split('T')[0], scan_time: new Date().toISOString() };
+    } else if (data && typeof data === 'object') {
+      if (!data.metadata) {
+        data.metadata = { date: new Date().toISOString().split('T')[0], scan_time: new Date().toISOString() };
+      }
+      if (!data.data) {
+        data.data = [];
+      }
     }
   }
+
+  // Fallback for missing elements in any market
+  if (!data) data = { metadata: { date: '', scan_time: '' }, data: [] };
+  if (!data.data) data.data = [];
+  if (!data.metadata) data.metadata = { date: '', scan_time: '' };
 
   if (market === 'BIST' && Array.isArray(data.data)) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -34,12 +41,14 @@ export async function loadMarketData(market: MarketType): Promise<MarketData> {
   }
 
   // ABD verilerinde eksik olan super_score'u hesapla
-  data.data = data.data.map((stock: Stock) => {
-    if (stock.scores && (stock.scores.super_score === undefined || stock.scores.super_score === null)) {
-      stock.scores.super_score = calculateSuperScore(stock);
-    }
-    return stock;
-  });
+  if (Array.isArray(data.data)) {
+    data.data = data.data.map((stock: Stock) => {
+      if (stock.scores && (stock.scores.super_score === undefined || stock.scores.super_score === null)) {
+        stock.scores.super_score = calculateSuperScore(stock);
+      }
+      return stock;
+    });
+  }
 
   return data as MarketData;
 }
@@ -222,16 +231,12 @@ export function transformBistStock(raw: any): Stock {
 }
 
 export async function getAvailableFiles(market: MarketType): Promise<string[]> {
-  const token = process.env.NEXT_PUBLIC_GITHUB_TOKEN || process.env.GITHUB_ACCESS_TOKEN;
-  const headers: Record<string, string> = {};
-  if (token) headers['Authorization'] = `token ${token}`;
-
   const prefix = market === 'BIST' ? 'bist_' : 'midas_data_';
   try {
-    const res = await fetch(`${GITHUB_DATA_BASE}/file-list.json`, { headers });
+    const res = await fetch(`${DATA_PROXY_URL}?file=file-list.json`);
     if (res.ok) {
       const list: string[] = await res.json();
-      const filtered = list.filter(f => f.startsWith(prefix)).sort();
+      const filtered = list.filter((f: string) => f.startsWith(prefix)).sort();
       console.log(`[getAvailableFiles] Found ${filtered.length} files for ${market}`);
       return filtered;
     }
@@ -243,14 +248,10 @@ export async function getAvailableFiles(market: MarketType): Promise<string[]> {
 }
 
 export async function loadHistoricalData(files: string[]): Promise<MarketData[]> {
-  const token = process.env.NEXT_PUBLIC_GITHUB_TOKEN || process.env.GITHUB_ACCESS_TOKEN;
-  const headers: Record<string, string> = {};
-  if (token) headers['Authorization'] = `token ${token}`;
-
   const results: MarketData[] = [];
   for (const file of files) {
     try {
-      const res = await fetch(`${GITHUB_DATA_BASE}/${file}`, { headers });
+      const res = await fetch(`${DATA_PROXY_URL}?file=${file}`);
       if (res.ok) {
         results.push(await res.json());
       }
