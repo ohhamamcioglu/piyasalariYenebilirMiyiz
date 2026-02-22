@@ -32,6 +32,8 @@ const SORT_OPTIONS: { value: SortField; label: string }[] = [
   { value: 'piotroski_f_score', label: 'Piotroski F' },
   { value: 'rsi_14', label: 'RSI' },
   { value: 'momentum_1m', label: 'Aylık Momentum' },
+  { value: 'momentum_3m', label: '3 Aylık Getiri' },
+  { value: 'momentum_1y', label: 'Yıllık Getiri' },
   { value: 'name', label: 'İsim (A-Z)' },
 ];
 

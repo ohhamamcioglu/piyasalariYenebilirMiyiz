@@ -188,11 +188,11 @@ function StockPageContent({ market, title, flag }: StockPageClientProps) {
       {viewMode === 'grid' ? (
         <div className="space-y-2">
           {visibleStocks.map((stock, i) => (
-            <StockCard key={stock.ticker} stock={stock} onClick={setSelectedStock} index={i} />
+            <StockCard key={stock.ticker} stock={stock} onClick={setSelectedStock} index={i} sortField={sortField} />
           ))}
         </div>
       ) : (
-        <StockTable stocks={visibleStocks} onStockClick={setSelectedStock} />
+        <StockTable stocks={visibleStocks} onStockClick={setSelectedStock} sortField={sortField} />
       )}
 
       {/* Load More */}

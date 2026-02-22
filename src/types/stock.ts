@@ -187,6 +187,8 @@ export type SortField =
   | "piotroski_f_score"
   | "master_score"
   | "rsi_14"
-  | "momentum_1m";
+  | "momentum_1m"
+  | "momentum_3m"
+  | "momentum_1y";
 export type SortDirection = "asc" | "desc";
 

@@ -6,9 +6,10 @@ import { TrendingUp, TrendingDown } from 'lucide-react';
 interface StockTableProps {
   stocks: Stock[];
   onStockClick: (stock: Stock) => void;
+  sortField?: string;
 }
 
-export default function StockTable({ stocks, onStockClick }: StockTableProps) {
+export default function StockTable({ stocks, onStockClick, sortField }: StockTableProps) {
   if (stocks.length === 0) {
     return (
       <div className="text-center py-12 text-slate-500 bg-[#0d1117] rounded-xl border border-[#2a3050]">
@@ -30,7 +31,9 @@ export default function StockTable({ stocks, onStockClick }: StockTableProps) {
             <th className="px-4 py-3 font-semibold border-b border-[#2a3050]/50">F/K</th>
             <th className="px-4 py-3 font-semibold border-b border-[#2a3050]/50">PD/DD</th>
             <th className="px-4 py-3 font-semibold border-b border-[#2a3050]/50">Temettü Verimi</th>
-            <th className="px-4 py-3 font-semibold border-b border-[#2a3050]/50">Aylık Mom.</th>
+            <th className="px-4 py-3 font-semibold border-b border-[#2a3050]/50">
+              {sortField === 'momentum_3m' ? '3 Aylık' : sortField === 'momentum_1y' ? 'Yıllık' : 'Aylık'} Getiri
+            </th>
             <th className="px-4 py-3 font-semibold rounded-tr-xl border-b border-[#2a3050]/50">Sektör</th>
           </tr>
         </thead>
@@ -40,7 +43,12 @@ export default function StockTable({ stocks, onStockClick }: StockTableProps) {
             const capped = capScore(score);
             const scoreColor = getScoreColor(capped);
             
-            const momentum = stock.technicals?.momentum_1m;
+            const momentum = sortField === 'momentum_3m' 
+              ? stock.technicals?.momentum_3m 
+              : sortField === 'momentum_1y' 
+                ? stock.technicals?.momentum_1y 
+                : stock.technicals?.momentum_1m;
+                
             const isUp = momentum !== null && momentum !== undefined && momentum > 0;
             const isco = stock.relative_valuation?.discount_premium_pe;
             

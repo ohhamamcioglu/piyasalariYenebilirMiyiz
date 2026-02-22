@@ -9,15 +9,21 @@ interface StockCardProps {
   stock: Stock;
   onClick: (stock: Stock) => void;
   index: number;
+  sortField?: string;
 }
 
-export default function StockCard({ stock, onClick, index }: StockCardProps) {
+export default function StockCard({ stock, onClick, index, sortField }: StockCardProps) {
   const score = stock.scores.super_score;
   const capped = capScore(score);
   const scoreColor = getScoreColor(capped);
   const scoreBg = getScoreBg(capped);
   const scoreBorder = getScoreBorder(capped);
-  const momentum = stock.technicals?.momentum_1m;
+  const momentum = sortField === 'momentum_3m' 
+    ? stock.technicals?.momentum_3m 
+    : sortField === 'momentum_1y' 
+      ? stock.technicals?.momentum_1y 
+      : stock.technicals?.momentum_1m;
+      
   const isUp = momentum !== null && momentum !== undefined && momentum > 0;
   const sectorIcon = stock.sector ? SECTOR_ICONS[stock.sector] || '📊' : '📊';
 
@@ -82,6 +88,9 @@ export default function StockCard({ stock, onClick, index }: StockCardProps) {
             <div className={`flex items-center justify-end gap-1 text-xs ${isUp ? 'text-emerald-400' : 'text-red-400'}`}>
               {isUp ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
               <span>{(momentum * 100).toFixed(1)}%</span>
+              <span className="text-[10px] opacity-60 ml-0.5">
+                ({sortField === 'momentum_3m' ? '3A' : sortField === 'momentum_1y' ? '1Y' : '1A'})
+              </span>
             </div>
           )}
           <p className="text-[10px] text-slate-600 mt-0.5">PD: {formatMarketCap(stock.market_cap)}</p>
