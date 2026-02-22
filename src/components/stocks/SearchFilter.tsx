@@ -131,6 +131,12 @@ export default function SearchFilter({
         >
           ⭐ Yaşar Erdinç Favorileri
         </button>
+        <button
+          onClick={() => handleQuickFilter('servet_radari')}
+          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${quickFilter === 'servet_radari' ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/50 shadow-[0_0_15px_rgba(99,102,241,0.2)]' : 'bg-[#0d1117] text-slate-400 border border-[#2a3050] hover:text-white hover:border-indigo-500/50'}`}
+        >
+          💎 Servet Radarı 2.0
+        </button>
       </div>
 
       {/* Score Slider + Result Count */}

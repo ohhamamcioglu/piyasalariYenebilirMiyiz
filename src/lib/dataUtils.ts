@@ -279,6 +279,16 @@ export function filterStocks(
     if (filters.quickFilter === 'yasar_erdinc') {
       if (!s.scores.yasar_erdinc_score || s.scores.yasar_erdinc_score.stages_passed < 4) return false;
     }
+    if (filters.quickFilter === 'servet_radari') {
+      // DNA Multibagger Criteria: Small Cap (< 3B), High Super Score (> 75), Near USD Dip (< 25%), Profit Growth
+      const isSmallCap = s.market_cap !== null && s.market_cap < 3000000000;
+      const isHighQuality = (s.scores.super_score ?? 0) > 75;
+      const isNearDip = s.technicals?.dolar_bazli_mesafe !== null && (s.technicals?.dolar_bazli_mesafe ?? 1) < 0.25;
+      const trend = s.profitability.ceyreklik_kar_trendi;
+      const hasGrowth = trend && trend.length >= 2 && (trend[trend.length - 1] ?? 0) > (trend[trend.length - 2] ?? -1e12);
+      
+      if (!isSmallCap || !isHighQuality || !isNearDip || !hasGrowth) return false;
+    }
 
     return true;
   });
