@@ -1,18 +1,32 @@
 import { Stock, MarketData, MarketType, SortField, SortDirection } from '@/types/stock';
 
-// ─── Data Loading Proxy ───────────────────────────────
-const DATA_PROXY_URL = '/api/proxy-data';
+export const GITHUB_DATA_BASE = 'https://raw.githubusercontent.com/ohhamamcioglu/piyasaRadar/main';
 
 // ─── Data Loading ───────────────────────────────────
 export async function loadMarketData(market: MarketType): Promise<MarketData> {
-  // BİST her zaman bist_all_data.json, US (Midas) için midas_all_data.json (ana dizinde)
   const latestFile = market === 'BIST' ? 'bist_all_data.json' : 'midas_all_data.json';
   
-  const res = await fetch(`${DATA_PROXY_URL}?file=${latestFile}`);
-  if (!res.ok) throw new Error(`Veri alınamadı: ${latestFile} (Proxy Hatası)`);
+  const token = process.env.NEXT_PUBLIC_GITHUB_TOKEN || process.env.GITHUB_ACCESS_TOKEN;
+  const headers: Record<string, string> = {};
+  if (token) headers['Authorization'] = `token ${token}`;
+
+  const res = await fetch(`${GITHUB_DATA_BASE}/${latestFile}`, { headers });
+  if (!res.ok) throw new Error(`Veri alınamadı: ${GITHUB_DATA_BASE}/${latestFile} (HTTP ${res.status})`);
   
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const data: any = await res.json();
+  let data: any = await res.json();
+
+  // Normalize US data if it's just an array or lacks metadata
+  if (market === 'US') {
+    if (Array.isArray(data)) {
+      data = {
+        metadata: { date: new Date().toISOString().split('T')[0], scan_time: new Date().toISOString() },
+        data: data
+      };
+    } else if (data.data && !data.metadata) {
+      data.metadata = { date: new Date().toISOString().split('T')[0], scan_time: new Date().toISOString() };
+    }
+  }
 
   if (market === 'BIST' && Array.isArray(data.data)) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -208,9 +222,13 @@ export function transformBistStock(raw: any): Stock {
 }
 
 export async function getAvailableFiles(market: MarketType): Promise<string[]> {
+  const token = process.env.NEXT_PUBLIC_GITHUB_TOKEN || process.env.GITHUB_ACCESS_TOKEN;
+  const headers: Record<string, string> = {};
+  if (token) headers['Authorization'] = `token ${token}`;
+
   const prefix = market === 'BIST' ? 'bist_' : 'midas_data_';
   try {
-    const res = await fetch(`${DATA_PROXY_URL}?file=file-list.json`);
+    const res = await fetch(`${GITHUB_DATA_BASE}/file-list.json`, { headers });
     if (res.ok) {
       const list: string[] = await res.json();
       const filtered = list.filter(f => f.startsWith(prefix)).sort();
@@ -225,10 +243,14 @@ export async function getAvailableFiles(market: MarketType): Promise<string[]> {
 }
 
 export async function loadHistoricalData(files: string[]): Promise<MarketData[]> {
+  const token = process.env.NEXT_PUBLIC_GITHUB_TOKEN || process.env.GITHUB_ACCESS_TOKEN;
+  const headers: Record<string, string> = {};
+  if (token) headers['Authorization'] = `token ${token}`;
+
   const results: MarketData[] = [];
   for (const file of files) {
     try {
-      const res = await fetch(`${DATA_PROXY_URL}?file=${file}`);
+      const res = await fetch(`${GITHUB_DATA_BASE}/${file}`, { headers });
       if (res.ok) {
         results.push(await res.json());
       }
