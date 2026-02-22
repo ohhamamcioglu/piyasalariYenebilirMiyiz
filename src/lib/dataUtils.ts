@@ -1,11 +1,16 @@
 import { Stock, MarketData, MarketType, SortField, SortDirection } from '@/types/stock';
 
-export const GITHUB_DATA_BASE = 'https://raw.githubusercontent.com/ohhamamcioglu/piyasaRadar/main';
+// ─── Data Loading Proxy ───────────────────────────────
+const DATA_PROXY_URL = '/api/proxy-data';
 
 // ─── Data Loading ───────────────────────────────────
 export async function loadMarketData(market: MarketType): Promise<MarketData> {
+  // BİST her zaman bist_all_data.json, US (Midas) için midas_all_data.json (ana dizinde)
   const latestFile = market === 'BIST' ? 'bist_all_data.json' : 'midas_all_data.json';
-  const res = await fetch(`${GITHUB_DATA_BASE}/${latestFile}`);
+  
+  const res = await fetch(`${DATA_PROXY_URL}?file=${latestFile}`);
+  if (!res.ok) throw new Error(`Veri alınamadı: ${latestFile} (Proxy Hatası)`);
+  
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const data: any = await res.json();
 
@@ -205,7 +210,7 @@ export function transformBistStock(raw: any): Stock {
 export async function getAvailableFiles(market: MarketType): Promise<string[]> {
   const prefix = market === 'BIST' ? 'bist_' : 'midas_data_';
   try {
-    const res = await fetch(`${GITHUB_DATA_BASE}/file-list.json`);
+    const res = await fetch(`${DATA_PROXY_URL}?file=file-list.json`);
     if (res.ok) {
       const list: string[] = await res.json();
       const filtered = list.filter(f => f.startsWith(prefix)).sort();
@@ -213,21 +218,20 @@ export async function getAvailableFiles(market: MarketType): Promise<string[]> {
       return filtered;
     }
     console.warn(`[getAvailableFiles] Fetch failed with status: ${res.status}`);
-  } catch (err) {
-    console.error(`[getAvailableFiles] Error fetching file list:`, err);
+  } catch (e) {
+    console.error("Uzak dosya listesi alınamadı:", e);
   }
-  const today = new Date().toISOString().slice(0, 10);
-  console.info(`[getAvailableFiles] Falling back to today's date: ${today}`);
-  return [`${prefix === 'bist_' ? 'bist_all_data' : prefix + today}.json`];
+  return [];
 }
 
-export async function loadHistoricalData(market: MarketType): Promise<MarketData[]> {
-  const files = await getAvailableFiles(market);
+export async function loadHistoricalData(files: string[]): Promise<MarketData[]> {
   const results: MarketData[] = [];
   for (const file of files) {
     try {
-      const res = await fetch(`${GITHUB_DATA_BASE}/${file}`);
-      if (res.ok) results.push(await res.json());
+      const res = await fetch(`${DATA_PROXY_URL}?file=${file}`);
+      if (res.ok) {
+        results.push(await res.json());
+      }
     } catch { /* Skip bad files */ }
   }
   return results;

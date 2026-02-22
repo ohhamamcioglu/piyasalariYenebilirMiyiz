@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { Bell, ExternalLink, Info } from 'lucide-react';
-import { GITHUB_DATA_BASE } from '@/lib/dataUtils';
 
 interface KapDisclosure {
   disclosureIndex: string;
@@ -21,7 +20,7 @@ export default function KapAlerts() {
   useEffect(() => {
     const fetchLatestKap = async () => {
       try {
-        const res = await fetch(`${GITHUB_DATA_BASE}/latest_kap.json`);
+        const res = await fetch('/api/proxy-data?file=latest_kap.json');
         if (res.ok) {
           const data = await res.json();
           setAlerts(data);
