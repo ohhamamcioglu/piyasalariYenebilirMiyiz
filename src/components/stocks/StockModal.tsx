@@ -5,7 +5,7 @@ import { Stock, MarketType } from '@/types/stock';
 import { formatNumber, formatPercent, formatMarketCap, getScoreColor, getScoreBg, getRadarData, getRedFlags, getGreenFlags, SECTOR_ICONS, translateSector, translateRecommendation, capScore } from '@/lib/dataUtils';
 import { X, Brain, AlertTriangle, CheckCircle2, Info, TrendingUp, TrendingDown, Target, Shield, DollarSign, BarChart3, Activity, User, Users, MapPin, Building } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
-import { loadHistoricalData } from '@/lib/dataUtils';
+import { loadHistoricalData, getAvailableFiles } from '@/lib/dataUtils';
 
 interface HistoricalPoint {
   date: string;
@@ -61,7 +61,8 @@ export default function StockModal({ stock, market, macros, onClose }: StockModa
           });
           setHistoricalData(points);
         } else {
-          const history = await loadHistoricalData(market);
+          const files = await getAvailableFiles(market);
+          const history = await loadHistoricalData(files);
           let points = history.map(h => {
             const s = h.data.find(st => st.ticker === stock.ticker);
             if (!s) return null;
