@@ -31,7 +31,7 @@ export default function StockModal({ stock, market, macros, onClose }: StockModa
     async function load() {
       setLoadingHist(true);
       try {
-        if (market === 'BIST' && stock.fiyat_gecmisi && stock.fiyat_gecmisi.length > 0) {
+        if (stock.fiyat_gecmisi && stock.fiyat_gecmisi.length > 0) {
           const fiyatlar = stock.fiyat_gecmisi;
           let daysToTake = fiyatlar.length;
           if (historyFilter === '1M') daysToTake = 22;
