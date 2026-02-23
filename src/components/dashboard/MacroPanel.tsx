@@ -42,11 +42,23 @@ function SparklineCard({ title, data, formatValue }: { title: string, data?: num
 export default function MacroPanel({ macros }: MacroPanelProps) {
   if (!macros || Object.keys(macros).length === 0) return null;
   
+  const isUS = macros['SP500'] !== undefined;
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-      <SparklineCard title="BIST 100" data={macros['BIST_100']} formatValue={(n) => n.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} />
-      <SparklineCard title="Dolar / TL" data={macros['USD_TRY']} formatValue={(n) => '₺' + n.toFixed(2)} />
-      <SparklineCard title="Gram Altın" data={macros['Gram_Altin']} formatValue={(n) => '₺' + n.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} />
+      {isUS ? (
+        <>
+          <SparklineCard title="S&P 500" data={macros['SP500']} formatValue={(n) => n.toLocaleString('en-US', { maximumFractionDigits: 0 })} />
+          <SparklineCard title="Nasdaq 100" data={macros['Nasdaq']} formatValue={(n) => n.toLocaleString('en-US', { maximumFractionDigits: 0 })} />
+          <SparklineCard title="VIX Endeksi" data={macros['VIX']} formatValue={(n) => n.toFixed(2)} />
+        </>
+      ) : (
+        <>
+          <SparklineCard title="BIST 100" data={macros['BIST_100']} formatValue={(n) => n.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} />
+          <SparklineCard title="Dolar / TL" data={macros['USD_TRY']} formatValue={(n) => '₺' + n.toFixed(2)} />
+          <SparklineCard title="Gram Altın" data={macros['Gram_Altin']} formatValue={(n) => '₺' + n.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} />
+        </>
+      )}
     </div>
   );
 }
