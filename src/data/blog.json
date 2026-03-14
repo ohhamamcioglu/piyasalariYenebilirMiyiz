@@ -1,0 +1,29 @@
+[
+  {
+    "slug": "piotroski-f-score-nedir",
+    "title": "Piotroski F-Score Nedir? Şirket Sağlığını Ölçmenin 9 Kriteri",
+    "excerpt": "Joseph Piotroski tarafından geliştirilen bu model, bir şirketin finansal gücünü 9 temel kriter üzerinden puanlar. 8 ve 9 puan alan şirketler 'finansal kale' olarak kabul edilir.",
+    "category": "Temel Analiz",
+    "date": "2026-03-14",
+    "icon": "🛡️",
+    "content": "## Piotroski F-Score Nedir?\n\nJoseph Piotroski, Stanford Üniversitesi'nde bir profesörken 2000 yılında yayınladığı makalede, düşük PD/DD oranına sahip hisseler arasından kazananları seçmek için 9 kriterli bir sistem önerdi. Bu sistem günümüzde kurumsal yatırımcılar tarafından 'şirket kalitesini' ölçmek için en çok kullanılan yöntemlerden biridir.\n\n### 9 Kritik Madde:\n\n1. **Net Kâr**: Şirketin son yıl kâr açıklamış olması.\n2. **Pozitif Nakit Akışı**: İşletme faaliyetlerinden nakit girişi olması.\n3. **Aktif Kârlılık Artışı (ROA)**: ROA'nın geçen yıla göre artması.\n4. **Nakit Akışı > Net Kâr**: Kazancın kalitesini ölçer (nakit olarak girmeyen kâr risklidir).\n5. **Borçlulukta Azalış**: Uzun vadeli borcun varlıklara oranının düşmesi.\n6. **Cari Oran Artışı**: Likidite gücünün artması.\n7. **Yeni Hisse İhracı Yapılmaması**: Şirketin hisse değerini sulandırmaması.\n8. **Brüt Marj Artışı**: Verimliliğin ve rekabet gücünün artması.\n9. **Varlık Devir Hızı Artışı**: Varlıkların daha verimli kullanılması.\n\n**Radarımızda Nasıl Kullanılır?**\n\nPiyasaRadar'da her hissenin detay sayfasında Piotroski skorunu görebilirsiniz. 7 ve üzeri puan alan şirketler 'Güvenli Bölge' olarak işaretlenir."
+  },
+  {
+    "slug": "kriz-kalkani-stratejisi",
+    "title": "Kriz Kalkanı: Fırtınalı Piyasalarda Ayakta Kalma Sanatı",
+    "excerpt": "Savaş, kriz veya yüksek enflasyon dönemlerinde hangi şirketler nakit kralıdır? Borfin eğitimlerinden süzülen 'Kriz Kalkanı' stratejisinin detayları.",
+    "category": "Borfin Stratejileri",
+    "date": "2026-03-14",
+    "icon": "🌊",
+    "content": "## Kriz/Savaş Kalkanı Stratejisi\n\nPiyasada her şey yolunda giderken herkes kazanabilir. Ancak gerçek yatırımcı, fırtına koptuğunda ayakta kalabilendir. Borfin eğitimlerinde vurgulanan bu strateji, savunma gücü en yüksek şirketleri bulmaya odaklanır.\n\n### Kriz Kalkanı Kriterleri:\n\n- **Nakit Rezervleri**: Şirketin kasasındaki nakdin piyasa değerine oranı yüksek olmalıdır.\n- **Düşük Borçluluk**: Özellikle döviz bazlı borcun özkaynaklara oranı kritik seviyenin altında kalmalıdır.\n- **Temettü Devamlılığı**: Kriz döneminde bile nakit akışı yaratıp yatırımcısıyla paylaşabilen şirket 'can suyu' taşır.\n- **Hammadde Güvencesi**: Girdi maliyetlerini kontrol edebilen veya ihracat gücüyle döviz koruması sağlayan yapılar.\n\n**Stratejiyi Uygulayın**\n\nAna sayfadaki 'Kriz Kalkanı' butonuna bastığınızda, bu filtrelere takılan en dirençli şirketler listelenir. Bu liste her gün güncellenen bilanço verileriyle dinamik olarak değişir."
+  },
+  {
+    "slug": "yasar-erdinc-metodu",
+    "title": "Yaşar Erdinç Metodu: 5 Aşamalı Hisse Eleme Sistemi",
+    "excerpt": "Efsanevi ekonomist Yaşar Erdinç'in mirası: Şirketleri sadece bir rasyo ile değil, 5 katmanlı bir süzgeçten geçirerek gerçek potansiyeli bulmak.",
+    "category": "Uzman Metotları",
+    "date": "2026-03-14",
+    "icon": "💎",
+    "content": "## Dr. Yaşar Erdinç'in 5 Aşamalı Elemesi\n\nRahmetli Yaşar Erdinç hoca, hisse seçimini bir disiplin haline getirmişti. PiyasaRadar'da uyguladığımız 'Erdinç Skoru', hocanın eğitimlerinde ve kitaplarında (örneğin 'Borsada Teknik Analiz') bahsettiği temel mantığı koda döker.\n\n### 5 Aşamalı Süzgeç:\n\n1. **Aşama: Satış ve Kâr Büyümesi**: Şirket reel olarak büyüyor mu?\n2. **Aşama: ROE vs Enflasyon**: Şirketin özsermaye kârlılığı enflasyonun üzerinde mi?\n3. **Aşama: F/K ve PD/DD Karşılaştırması**: Fiyat, sektör ortalamalarına göre makul mü?\n4. **Aşama: Nakit Akışı Analizi**: Kâğıt üzerindeki kâr kasaya giriyor mu?\n5. **Aşama: Momentum ve Onay**: Temel analiz iyi olsa da teknik olarak hisse 'ucuz ama ölü' mü yoksa 'hareketli' mi?\n\n**PiyasaRadar Entegrasyonu**\n\nSitemizde 'Yaşar Erdinç Favorileri' butonu, bu 5 aşamanın en az 4'ünü geçen 'yıldız' adaylarını sizin için listeler."
+  }
+]
