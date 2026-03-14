@@ -40,10 +40,16 @@ export async function loadMarketData(market: MarketType): Promise<MarketData> {
     data.data = data.data.map((raw: any) => raw.ticker ? raw : transformBistStock(raw));
   }
 
-  // ABD verilerinde eksik olan super_score'u hesapla
+  // Ensure required sub-objects exist and calculate missing super_score
   if (Array.isArray(data.data)) {
     data.data = data.data.map((stock: Stock) => {
-      if (stock.scores && (stock.scores.super_score === undefined || stock.scores.super_score === null)) {
+      if (!stock.valuation) stock.valuation = { pe_trailing: null, pe_forward: null, peg_ratio: null, pb_ratio: null, ev_ebitda: null, ev_revenue: null, ps_ratio: null };
+      if (!stock.scores) stock.scores = { piotroski_f_score: null, altman_z_score: null, graham_number: null, super_score: null };
+      if (!stock.technicals) stock.technicals = { sma_50: null, sma_200: null, rsi_14: null, momentum_1m: null, momentum_3m: null, momentum_1y: null, price_vs_sma200: null };
+      if (!stock.profitability) stock.profitability = { roe: null, roa: null, net_margin: null, operating_margin: null, gross_margin: null, ebitda_margin: null };
+      if (!stock.growth) stock.growth = { revenue_growth: null, earnings_growth: null, earnings_quarterly_growth: null };
+      
+      if (stock.scores.super_score === undefined || stock.scores.super_score === null) {
         stock.scores.super_score = calculateSuperScore(stock);
       }
       return stock;
@@ -201,6 +207,9 @@ export function transformBistStock(raw: any): Stock {
       master_score: raw.uzman_skorları?.master_skor ?? null,
       super_score: raw.uzman_skorları?.super_score ?? null,
       export_power: raw.uzman_skorları?.ihracat_gucu ?? null,
+      kriz_kalkani: raw.uzman_skorları?.kriz_kalkani ?? null,
+      borfin_peg_score: raw.uzman_skorları?.borfin_peg_score ?? null,
+      merdiven_puani: raw.uzman_skorları?.merdiven_puani ?? null,
     },
     technicals: raw.teknik_analiz ? {
       sma_50: raw.teknik_analiz.sma_50 ?? null,
@@ -454,16 +463,18 @@ export function getSectorGroups(stocks: Stock[]): Record<string, Stock[]> {
 }
 
 export function getMarketStats(stocks: Stock[]) {
-  const valid = stocks.filter(s => s.name && s.price);
-  const withScore = valid.filter(s => s.scores.super_score !== null && !isNaN(s.scores.super_score!));
+  const valid = stocks.filter(s => s && s.name && s.price && s.price > 0);
+  const withScore = valid.filter(s => s.scores && s.scores.super_score !== null && !isNaN(s.scores.super_score!));
   
   const avgScore = withScore.length > 0
     ? withScore.reduce((sum, s) => sum + Math.min(s.scores.super_score ?? 0, 100), 0) / withScore.length
     : 0;
     
-  const totalMarketCap = valid.reduce((sum, s) => sum + (s.market_cap ?? 0), 0);
-  const avgPE = valid.filter(s => s.valuation.pe_trailing !== null && s.valuation.pe_trailing > 0 && !isNaN(s.valuation.pe_trailing))
-    .reduce((acc, s, _, arr) => acc + (s.valuation.pe_trailing ?? 0) / arr.length, 0);
+  const totalMarketCap = valid.reduce((sum, s) => sum + (Number(s.market_cap) || 0), 0);
+  const peStocks = valid.filter(s => s.valuation && s.valuation.pe_trailing !== null && s.valuation.pe_trailing > 0 && !isNaN(s.valuation.pe_trailing));
+  const avgPE = peStocks.length > 0
+    ? peStocks.reduce((acc, s) => acc + (s.valuation.pe_trailing ?? 0), 0) / peStocks.length
+    : 0;
 
   return {
     totalStocks: valid.length,

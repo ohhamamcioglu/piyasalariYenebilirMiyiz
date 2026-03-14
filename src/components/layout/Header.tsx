@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { TrendingUp, BarChart3, Menu, X } from 'lucide-react';
+import { TrendingUp, BarChart3, Menu, X, Shield, Star } from 'lucide-react';
 import { useState } from 'react';
 
 export default function Header() {
@@ -38,6 +38,15 @@ export default function Header() {
               <BarChart3 className="w-4 h-4" />
               Karşılaştır
             </Link>
+            <div className="h-4 w-[1px] bg-[#2a3050] mx-2" />
+            <Link href="/bist?filter=kriz_kalkani" className="px-3 py-1.5 text-[11px] font-bold text-red-400 bg-red-400/10 border border-red-500/20 rounded-lg hover:bg-red-400/20 transition-all flex items-center gap-1.5 whitespace-nowrap shadow-[0_0_10px_rgba(239,68,68,0.1)]">
+              <Shield className="w-3 h-3" />
+              KRİZ KALKANI
+            </Link>
+            <Link href="/bist?filter=borfin_peg" className="px-3 py-1.5 text-[11px] font-bold text-fuchsia-400 bg-fuchsia-400/10 border border-fuchsia-500/20 rounded-lg hover:bg-fuchsia-400/20 transition-all flex items-center gap-1.5 whitespace-nowrap shadow-[0_0_10px_rgba(217,70,239,0.1)]">
+              <Star className="w-3 h-3" />
+              PEG YILDIZLARI
+            </Link>
           </nav>
 
           {/* Mobile menu button */}
@@ -60,6 +69,12 @@ export default function Header() {
             </Link>
             <Link href="/karsilastir" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 rounded-lg">
               📊 Karşılaştır
+            </Link>
+            <Link href="/bist?filter=kriz_kalkani" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-sm font-bold text-red-400 hover:bg-red-400/10 rounded-lg">
+              🛡️ Kriz Kalkanı
+            </Link>
+            <Link href="/bist?filter=borfin_peg" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-sm font-bold text-fuchsia-400 hover:bg-fuchsia-400/10 rounded-lg">
+              🚀 PEG Yıldızları
             </Link>
           </nav>
         )}

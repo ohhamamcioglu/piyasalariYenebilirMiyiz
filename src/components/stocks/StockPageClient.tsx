@@ -40,14 +40,20 @@ function StockPageContent({ market, title, flag }: StockPageClientProps) {
   const filterRef = useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams();
 
-  // Read sector from URL query parameter (from dashboard heatmap click)
+  // Read sector and filter from URL query parameter
   useEffect(() => {
     const urlSector = searchParams.get('sector');
+    const urlFilter = searchParams.get('filter');
+    
     if (urlSector) {
       setSector(urlSector);
       setTimeout(() => {
         filterRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 500);
+    }
+    
+    if (urlFilter) {
+      setQuickFilter(urlFilter);
     }
   }, [searchParams]);
 
