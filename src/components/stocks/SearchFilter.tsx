@@ -114,6 +114,24 @@ export default function SearchFilter({
       {/* Quick Filters */}
       <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-[#2a3050]/30">
         <button
+          onClick={() => handleQuickFilter('kriz_kalkani')}
+          className={`px-3 py-1.5 rounded-lg text-sm font-bold transition-all ${quickFilter === 'kriz_kalkani' ? 'bg-red-500/20 text-red-400 border border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.2)]' : 'bg-[#0d1117] text-slate-400 border border-[#2a3050] hover:text-white hover:border-red-500/50'}`}
+        >
+          🛡️ Kriz/Savaş Kalkanı
+        </button>
+        <button
+          onClick={() => handleQuickFilter('borfin_peg')}
+          className={`px-3 py-1.5 rounded-lg text-sm font-bold transition-all ${quickFilter === 'borfin_peg' ? 'bg-fuchsia-500/20 text-fuchsia-400 border border-fuchsia-500/50 shadow-[0_0_15px_rgba(217,70,239,0.2)]' : 'bg-[#0d1117] text-slate-400 border border-[#2a3050] hover:text-white hover:border-fuchsia-500/50'}`}
+        >
+          🚀 Borfin PEG Yıldızları
+        </button>
+        <button
+          onClick={() => handleQuickFilter('servet_radari')}
+          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${quickFilter === 'servet_radari' ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/50 shadow-[0_0_15px_rgba(99,102,241,0.2)]' : 'bg-[#0d1117] text-slate-400 border border-[#2a3050] hover:text-white hover:border-indigo-500/50'}`}
+        >
+          💎 Servet Radarı 2.0
+        </button>
+        <button
           onClick={() => handleQuickFilter('dolar_dip')}
           className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${quickFilter === 'dolar_dip' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50' : 'bg-[#0d1117] text-slate-400 border border-[#2a3050] hover:text-white hover:border-slate-500'}`}
         >
@@ -130,12 +148,6 @@ export default function SearchFilter({
           className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${quickFilter === 'yasar_erdinc' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/50' : 'bg-[#0d1117] text-slate-400 border border-[#2a3050] hover:text-white hover:border-slate-500'}`}
         >
           ⭐ Yaşar Erdinç Favorileri
-        </button>
-        <button
-          onClick={() => handleQuickFilter('servet_radari')}
-          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${quickFilter === 'servet_radari' ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/50 shadow-[0_0_15px_rgba(99,102,241,0.2)]' : 'bg-[#0d1117] text-slate-400 border border-[#2a3050] hover:text-white hover:border-indigo-500/50'}`}
-        >
-          💎 Servet Radarı 2.0
         </button>
       </div>
 

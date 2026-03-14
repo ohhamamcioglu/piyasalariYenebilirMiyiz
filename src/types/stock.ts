@@ -101,6 +101,9 @@ export interface StockScores {
   master_score?: number | null;
   super_score: number | null;
   export_power?: number | null;
+  kriz_kalkani?: boolean | null;
+  borfin_peg_score?: number | null;
+  merdiven_puani?: number | null;
 }
 
 export interface StockTechnicals {

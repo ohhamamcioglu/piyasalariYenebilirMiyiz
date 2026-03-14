@@ -316,6 +316,14 @@ export function filterStocks(
       
       if (!isSmallCap || !isHighQuality || !isNearDip || !hasGrowth) return false;
     }
+    
+    if (filters.quickFilter === 'kriz_kalkani') {
+      if (!s.scores.kriz_kalkani) return false;
+    }
+    
+    if (filters.quickFilter === 'borfin_peg') {
+      if (s.scores.borfin_peg_score !== 100 && s.scores.borfin_peg_score !== 50) return false;
+    }
 
     return true;
   });
@@ -588,6 +596,22 @@ export function getGreenFlags(stock: Stock): string[] {
   }
 
   // New Strategy Flags
+  if (stock.scores.kriz_kalkani) {
+    flags.push('🛡️ Kriz Kalkanı: Güçlü Bilanço & Temettü & Ucuzluk');
+  }
+
+  if (stock.scores.borfin_peg_score === 100) {
+    flags.push('🚀 Borfin PEG: Ekstrem Yüksek Büyüme Fırsatı (PEG < 0.5)');
+  } else if (stock.scores.borfin_peg_score === 50) {
+    flags.push('📈 Borfin PEG: Yüksek Büyüme Fırsatı (PEG < 1.0)');
+  }
+
+  if (stock.scores.merdiven_puani === 10) {
+    flags.push('📊 Merdivenimsi Kâr Trendi: Kusursuz 4 Çeyrek Büyüme');
+  } else if (stock.scores.merdiven_puani === 7) {
+    flags.push('📊 Merdivenimsi Kâr Trendi: İstikrarlı 3 Çeyrek Büyüme');
+  }
+
   if (stock.scores.yasar_erdinc_score && stock.scores.yasar_erdinc_score.stages_passed >= 4) {
     flags.push(`Yaşar Erdinç Modeli: ${stock.scores.yasar_erdinc_score.stages_passed}/5 aşama tamam`);
   }
