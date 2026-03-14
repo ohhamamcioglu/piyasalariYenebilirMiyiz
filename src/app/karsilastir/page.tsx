@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Stock, MarketData, MarketType } from '@/types/stock';
 import StockModal from '@/components/stocks/StockModal';
-import { formatNumber, formatPercent, formatMarketCap, getScoreColor, SECTOR_ICONS, capScore } from '@/lib/dataUtils';
+import { formatNumber, formatPercent, formatMarketCap, getScoreColor, SECTOR_ICONS, capScore, loadMarketData } from '@/lib/dataUtils';
 import { Search, X, ArrowLeftRight, Loader2 } from 'lucide-react';
 
 export default function KarsilastirPage() {
@@ -18,10 +18,9 @@ export default function KarsilastirPage() {
 
   useEffect(() => {
     async function load() {
-      const today = new Date().toISOString().slice(0, 10);
       const [b, u] = await Promise.all([
-        fetch(`/data/bist_data_${today}.json`).then(r => r.ok ? r.json() : null).catch(() => null),
-        fetch(`/data/midas_data_${today}.json`).then(r => r.ok ? r.json() : null).catch(() => null),
+        loadMarketData('BIST').catch(() => null),
+        loadMarketData('US').catch(() => null),
       ]);
       setBistData(b);
       setUsData(u);
