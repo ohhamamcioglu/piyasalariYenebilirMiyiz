@@ -12,30 +12,41 @@ export async function GET(request: Request) {
   const REPO_OWNER = process.env.GITHUB_REPO_OWNER || 'ohhamamcioglu';
   const REPO_NAME = process.env.GITHUB_REPO_NAME || 'piyasaRadar';
   
-  // Attempt to fetch from root first, fallback to /history if needed
   const urls = [
     `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/${file}`,
     `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/history/${file}`
   ];
 
+  console.log(`[Proxy] Fetching file: ${file} from repo: ${REPO_OWNER}/${REPO_NAME}`);
+
   for (const url of urls) {
     try {
+      const headers: Record<string, string> = {};
+      if (GITHUB_TOKEN) {
+        headers['Authorization'] = `token ${GITHUB_TOKEN}`;
+      }
+
+      console.log(`[Proxy] Trying URL: ${url}`);
+      
       const response = await fetch(url, {
-        headers: {
-          'Authorization': `token ${GITHUB_TOKEN}`,
-          'Accept': 'application/vnd.github.v3.raw',
-        },
+        headers,
         cache: 'no-store'
       });
 
       if (response.ok) {
         const data = await response.json();
         return NextResponse.json(data);
+      } else {
+        console.warn(`[Proxy] Failed with status ${response.status} for ${url}`);
       }
     } catch (err) {
-      console.warn(`Failed to fetch from ${url}:`, err);
+      console.error(`[Proxy] Fetch error for ${url}:`, err);
     }
   }
 
-  return NextResponse.json({ error: 'File not found in root or history' }, { status: 404 });
+  return NextResponse.json({ 
+    error: 'File not found in root or history',
+    attemptedRepo: `${REPO_OWNER}/${REPO_NAME}`,
+    file: file
+  }, { status: 404 });
 }
