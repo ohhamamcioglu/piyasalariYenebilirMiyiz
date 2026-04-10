@@ -19,6 +19,8 @@ export async function GET(request: Request) {
 
   console.log(`[Proxy] Fetching file: ${file} from repo: ${REPO_OWNER}/${REPO_NAME}`);
 
+  const attemptedStatuses: Record<string, number> = {};
+
   for (const url of urls) {
     try {
       const headers: Record<string, string> = {};
@@ -33,6 +35,8 @@ export async function GET(request: Request) {
         cache: 'no-store'
       });
 
+      attemptedStatuses[url] = response.status;
+
       if (response.ok) {
         const data = await response.json();
         return NextResponse.json(data);
@@ -41,12 +45,14 @@ export async function GET(request: Request) {
       }
     } catch (err) {
       console.error(`[Proxy] Fetch error for ${url}:`, err);
+      attemptedStatuses[url] = 0; // indicates network error
     }
   }
 
   return NextResponse.json({ 
     error: 'File not found in root or history',
     attemptedRepo: `${REPO_OWNER}/${REPO_NAME}`,
-    file: file
+    file: file,
+    statuses: attemptedStatuses
   }, { status: 404 });
 }
