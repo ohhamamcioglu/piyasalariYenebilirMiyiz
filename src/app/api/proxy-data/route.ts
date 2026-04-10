@@ -22,30 +22,33 @@ export async function GET(request: Request) {
   const attemptedStatuses: Record<string, number> = {};
 
   for (const url of urls) {
-    try {
-      const headers: Record<string, string> = {};
-      if (GITHUB_TOKEN) {
-        headers['Authorization'] = `token ${GITHUB_TOKEN}`;
+    // Try with token if available
+    if (GITHUB_TOKEN) {
+      try {
+        console.log(`[Proxy] Trying URL with token: ${url}`);
+        const response = await fetch(url, {
+          headers: { 'Authorization': `token ${GITHUB_TOKEN}` },
+          cache: 'no-store'
+        });
+        attemptedStatuses[`${url} (with token)`] = response.status;
+        if (response.ok) {
+          return NextResponse.json(await response.json());
+        }
+      } catch (err) {
+        console.error(`[Proxy] Token fetch error for ${url}:`, err);
       }
+    }
 
-      console.log(`[Proxy] Trying URL: ${url}`);
-      
-      const response = await fetch(url, {
-        headers,
-        cache: 'no-store'
-      });
-
-      attemptedStatuses[url] = response.status;
-
+    // Always try without token (fallback or for public repos)
+    try {
+      console.log(`[Proxy] Trying URL without token: ${url}`);
+      const response = await fetch(url, { cache: 'no-store' });
+      attemptedStatuses[`${url} (no token)`] = response.status;
       if (response.ok) {
-        const data = await response.json();
-        return NextResponse.json(data);
-      } else {
-        console.warn(`[Proxy] Failed with status ${response.status} for ${url}`);
+        return NextResponse.json(await response.json());
       }
     } catch (err) {
-      console.error(`[Proxy] Fetch error for ${url}:`, err);
-      attemptedStatuses[url] = 0; // indicates network error
+      console.error(`[Proxy] No-token fetch error for ${url}:`, err);
     }
   }
 
